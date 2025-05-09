@@ -1,5 +1,6 @@
-const signUpSchema = require("../../../models/adminSideSchema/login/signUpSchema");
+// const signUpSchema = require("../../../models/adminSideSchema/login/signUpSchema");
 const generateToken = require("../../../util/generateToken");
+const User = require("../../../models/loginSchema/userSchema");
 
 // @route  POST /api/auth/signup
 const signup = async (req, res) => {
@@ -7,17 +8,20 @@ const signup = async (req, res) => {
   console.log("Received:", name, email, password);
 
   try {
+    // Check if the user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       console.log("User already exists");
       return res.status(409).json({ message: "Email already exists" });
     }
 
-    const newUser = new User({ name, email, password });
+    // Create a new user
+    const newUser = new signUpSchema({ name, email, password });
     await newUser.save();
 
     console.log("User saved:", newUser);
 
+    // Generate a token
     const token = generateToken(newUser._id);
     res.status(201).json({
       message: "User registered",

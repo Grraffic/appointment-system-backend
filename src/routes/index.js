@@ -16,5 +16,6 @@ const router = express.Router();
 router.use("/contact", require("./contactFormRoute"));
 router.use("/students", require("./appointmentRoute/studentRoute"));
 router.use("/signup", require("./loginRoute/signUpRoute"));
+router.use("/signin", require("./loginRoute/signInRoute"));
 
 module.exports = router;

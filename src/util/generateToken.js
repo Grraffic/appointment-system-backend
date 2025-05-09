@@ -1,8 +1,81 @@
-const jwt = require("jsonwebtoken");
+// const jwt = require("jsonwebtoken");
+// const nodemailer = require("nodemailer");
 
+// const generateToken = (userId) => {
+//   const secret = process.env.JWT_SECRET || "your_jwt_secret_here";
+//   return jwt.sign({ id: userId }, secret, { expiresIn: "1d" });
+// };
+
+// const sendLoginNotification = async (email, loginDetails) => {
+//   const transporter = nodemailer.createTransport({
+//     service: "gmail",
+//     auth: {
+//       user: process.env.GMAIL_USER, // Your Gmail address
+//       pass: process.env.GMAIL_PASS, // Your Gmail app password
+//     },
+//   });
+
+//   const mailOptions = {
+//     from: process.env.GMAIL_USER,
+//     to: email,
+//     subject: "Login Notification",
+//     text: `You logged into your account on ${loginDetails.time} from IP: ${loginDetails.ip}.`,
+//   };
+
+//   try {
+//     await transporter.sendMail(mailOptions);
+//     console.log("Login notification sent successfully.");
+//   } catch (error) {
+//     console.error("Error sending login notification:", error);
+//   }
+// };
+
+// module.exports = { generateToken, sendLoginNotification };
+
+const jwt = require("jsonwebtoken");
+const nodemailer = require("nodemailer");
+
+// Generate JWT token
 const generateToken = (userId) => {
   const secret = process.env.JWT_SECRET || "your_jwt_secret_here";
   return jwt.sign({ id: userId }, secret, { expiresIn: "1d" });
 };
 
-module.exports = generateToken;
+// Send login notification email
+const sendLoginNotification = async (email, loginDetails) => {
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.GMAIL_USER, // Your Gmail address
+      pass: process.env.GMAIL_PASS, // Gmail App Password (not normal password)
+    },
+  });
+
+  const mailOptions = {
+    from: `"Your App Name" <${process.env.GMAIL_USER}>`,
+    to: email,
+    subject: "Login Notification",
+    text: `Hello,
+
+You just logged into your account.
+
+Date & Time: ${loginDetails.time}
+IP Address: ${loginDetails.ip}
+
+If this wasn't you, please secure your account immediately.
+
+- Your App Team`,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`Login notification sent to ${email}`);
+  } catch (error) {
+    console.error("Error sending login notification:", error.message);
+  }
+};
+
+module.exports = {
+  generateToken,
+  sendLoginNotification,
+};
