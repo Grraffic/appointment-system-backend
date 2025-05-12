@@ -1,8 +1,14 @@
+// models/appointmentSchema/requestSchema.js
 const mongoose = require("mongoose");
 
 const requestSchema = new mongoose.Schema({
+  student: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Student",
+    required: true,
+  },
   selectedDocuments: {
-    type: [String], // Array to allow multiple selections
+    type: [String],
     enum: {
       values: [
         "Certificate of Enrollment",
