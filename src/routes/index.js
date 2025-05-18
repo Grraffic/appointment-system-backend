@@ -15,8 +15,17 @@ const router = express.Router();
 
 router.use("/contact", require("./contactFormRoute"));
 router.use("/students", require("./appointmentRoute/studentRoute"));
-router.use("/signup", require("./loginRoute/signUpRoute"));
-// router.use("/signin", require("./loginRoute/signInRoute"));
-router.use("/document-requests", require("./appointmentRoute/studentRoute"));
+router.use(
+  "/document-requests",
+  require("./appointmentRoute/documentRequestRoute")
+);
+router.use("/bookings", require("./appointmentRoute/bookingRoutes"));
+
+router.use("/attachment", require("./appointmentRoute/attachmentRoute")); // ✅ IMPORTANT
+router.use("/signup", require("./adminSideRoute/loginRoute/signUpRoute"));
+router.use(
+  "/schedules",
+  require("./adminSideRoute/maintenanceRoute/scheduleRoute")
+);
 
 module.exports = router;

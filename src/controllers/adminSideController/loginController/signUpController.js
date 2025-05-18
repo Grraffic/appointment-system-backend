@@ -1,6 +1,6 @@
 // const signUpSchema = require("../../../models/adminSideSchema/login/signUpSchema");
 const generateToken = require("../../../util/generateToken");
-const User = require("../../../models/loginSchema/userSchema");
+const User = require("../../../models/adminSideSchema/loginSchema/userSchema");
 
 // @route  POST /api/auth/signup
 const signup = async (req, res) => {

@@ -3,6 +3,11 @@ const mongoose = require("mongoose");
 const attachmentSchema = new mongoose.Schema({
   files: [
     {
+      student: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Student",
+        required: true,
+      },
       filename: {
         type: String,
         required: true,

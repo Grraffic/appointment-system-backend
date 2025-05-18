@@ -1,0 +1,197 @@
+### =====================
+### USER SIDE
+### =====================
+
+# CONTACT FORM
+
+### Submit a contact form
+POST http://localhost:5000/api/contact
+Content-Type: application/json
+
+{
+  "name": "Jane Doe",
+  "email": "jane@example.com",
+  "subject": "Asking for scholarship",
+  "message": "I would like to know more about your services."
+}
+
+### Get all contact form submissions
+GET http://localhost:5000/api/contact
+
+### Get a contact form submission by ID
+GET http://localhost:5000/api/contact/CONTACT_ID_HERE
+
+### Update a contact form submission
+PUT http://localhost:5000/api/contact/CONTACT_ID_HERE
+Content-Type: application/json
+
+{
+  "name": "Jane Smith",
+  "email": "jane.smith@example.com",
+  "message": "Updated message."
+}
+
+### Delete a contact form submission
+DELETE http://localhost:5000/api/contact/CONTACT_ID_HERE
+
+
+# STUDENT ROUTES
+
+### Create a new student
+POST http://localhost:5000/api/students
+Content-Type: application/json
+
+{
+  "surname": "Marco",
+  "firstName": "Justine Jynne",
+  "middleName": "A.",
+  "lastSchoolYearAttended": "2020-2023",
+  "courseOrStrand": "Grade 7",
+  "presentAddress": "sampaloc",
+  "contactNumber": "09123456789",
+  "emailAddress": "justine@gmail.com"
+}
+
+### Get all students
+GET http://localhost:5000/api/students
+
+### Get a student by ID
+GET http://localhost:5000/api/students/6827ef3ee4e6fb2501433626
+
+### Update a student
+PUT http://localhost:5000/api/students/STUDENT_ID_HERE
+Content-Type: application/json
+
+{
+  "name": "Johnathan Doe",
+  "email": "johnathan@example.com"
+}
+
+### Delete a student
+DELETE http://localhost:5000/api/students/6827efc9e4e6fb250143362b
+
+
+# DOCUMENT REQUESTS
+
+### Create a document request
+POST http://localhost:5000/api/document-requests/docs
+Content-Type: application/json
+
+{
+  "studentId": "6827ef3ee4e6fb2501433626",
+  "selectedDocuments": "Certificate of Enrollment",
+  "purpose": "For job application",
+  "dateOfRequest": "05-05-2025"
+}
+
+### Get all document requests
+GET http://localhost:5000/api/document-requests/docs
+
+### Get a document request by ID
+GET http://localhost:5000/api/document-requests/docs/6827f10ee4e6fb2501433639
+
+### Update a document request
+PUT http://localhost:5000/api/document-requests/docs/6827ef3ee4e6fb2501433626
+Content-Type: application/json
+
+{
+  "documentType": "Certificate",
+  "reason": "Updated purpose"
+}
+
+### Delete a document request
+DELETE http://localhost:5000/api/document-requests/DOC_REQUEST_ID_HERE
+
+### Get a document request with student details
+GET http://localhost:5000/api/document-requests/docs/with-student/6827f10ee4e6fb2501433639
+
+
+# ATTACHMENTS
+
+### Upload attachments
+POST http://localhost:5000/api/attachment/upload
+Content-Type: multipart/form-data
+
+# NOTE: Use a REST client that supports file upload, like Postman or VS Code REST Client extension.
+
+### Get all attachments
+GET http://localhost:5000/api/attachment
+
+### Get attachment by ID
+GET http://localhost:5000/api/attachment/ATTACHMENT_ID_HERE
+
+### Delete attachment by ID
+DELETE http://localhost:5000/api/attachment/ATTACHMENT_ID_HERE
+
+
+# =====================
+# BOOKINGS
+# =====================
+
+### Create a new booking (User books a time slot)
+POST http://localhost:5000/api/bookings
+Content-Type: application/json
+
+{
+  "userId": "6817b28c2b5ee75e32caa0b3",
+  "scheduleId": "6826ced4fd101145f28c921d"
+}
+
+### Get all bookings (admin/staff view)
+GET http://localhost:5000/api/bookings
+
+### Get bookings by user ID (user's own appointments)
+GET http://localhost:5000/api/bookings/user/6817b28c2b5ee75e32caa0b3
+
+### =====================
+### ADMIN SIDE
+### =====================
+
+# SIGNUP (Admin Users)
+
+### Sign-up a new user
+POST http://localhost:5000/api/signup
+Content-Type: application/json
+
+{
+  "username": "adminuser",
+  "email": "admin@example.com",
+  "password": "securePassword123"
+}
+
+### Get all users
+GET http://localhost:5000/api/signup
+
+### Get user by ID
+GET http://localhost:5000/api/signup/USER_ID_HERE
+
+### Update user
+PUT http://localhost:5000/api/signup/USER_ID_HERE
+Content-Type: application/json
+
+{
+  "username": "updatedName",
+  "email": "updatedemail@example.com"
+}
+
+### Delete user
+DELETE http://localhost:5000/api/signup/USER_ID_HERE
+
+
+# =====================
+# SCHEDULE ROUTES
+# =====================
+
+### Create a new schedule
+POST http://localhost:5000/api/schedules
+Content-Type: application/json
+
+{
+  "slots": 40,
+  "date": "2024-12-27",
+  "startTime": "8:00 AM",
+  "endTime": "4:00 PM"
+}
+
+### Get all schedules
+GET http://localhost:5000/api/schedules
