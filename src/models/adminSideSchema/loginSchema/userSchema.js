@@ -1,46 +1,49 @@
-// const mongoose = require("mongoose");
-// const bcrypt = require("bcrypt");
-
-// const userSchema = new mongoose.Schema(
-//   {
-//     name: { type: String, required: true },
-//     email: { type: String, required: true, unique: true, lowercase: true },
-//     password: { type: String, required: true },
-//   },
-//   { timestamps: true }
-// );
-
-// // Hash password
-// userSchema.pre("save", async function (next) {
-//   if (!this.isModified("password")) return next();
-//   this.password = await bcrypt.hash(this.password, 10);
-//   next();
-// });
-
-// // Compare password
-// userSchema.methods.comparePassword = async function (candidatePassword) {
-//   return await bcrypt.compare(candidatePassword, this.password);
-// };
-
-// module.exports = mongoose.models.User || mongoose.model("User", userSchema);
-
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 
 const userSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true, lowercase: true },
-  password: { type: String, required: true },
+  name: {
+    type: String,
+    required: [true, "Name is required"],
+    trim: true,
+  },
+  email: {
+    type: String,
+    required: [true, "Email is required"],
+    unique: true,
+    trim: true,
+    lowercase: true,
+    match: [/^\S+@\S+\.\S+$/, "Please enter a valid email"],
+  },
+  password: {
+    type: String,
+    required: [true, "Password is required"],
+    minlength: [8, "Password must be at least 8 characters"],
+  },
+  role: {
+    type: String,
+    enum: ["admin", "staff"],
+    default: "admin",
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
-  this.password = await bcrypt.hash(this.password, 10);
-  next();
-});
+// Remove password hashing middleware since we're handling it in the controller
 
-userSchema.methods.comparePassword = async function (plainPassword) {
-  return await bcrypt.compare(plainPassword, this.password);
+// Method to check password
+userSchema.methods.comparePassword = async function (candidatePassword) {
+  try {
+    console.log("Comparing passwords for user:", this.email);
+    const isMatch = await bcrypt.compare(candidatePassword, this.password);
+    console.log("Password match result:", isMatch);
+    return isMatch;
+  } catch (error) {
+    console.error("Error comparing passwords:", error);
+    throw error;
+  }
 };
 
 module.exports = mongoose.model("User", userSchema);

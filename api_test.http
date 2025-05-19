@@ -149,34 +149,56 @@ GET http://localhost:5000/api/bookings/user/6817b28c2b5ee75e32caa0b3
 
 # SIGNUP (Admin Users)
 
-### Sign-up a new user
+### Create new admin account
 POST http://localhost:5000/api/signup
 Content-Type: application/json
 
 {
-  "username": "adminuser",
-  "email": "admin@example.com",
-  "password": "securePassword123"
+    "name": "Rafael Ramos",
+    "email": "ramosraf278@gmail.com",
+    "password": "Admin@123",
+    "confirmPassword": "Admin@123"
 }
 
-### Get all users
-GET http://localhost:5000/api/signup
-
-### Get user by ID
-GET http://localhost:5000/api/signup/USER_ID_HERE
-
-### Update user
-PUT http://localhost:5000/api/signup/USER_ID_HERE
+### Sign in to get token
+POST http://localhost:5000/api/signin
 Content-Type: application/json
 
 {
-  "username": "updatedName",
-  "email": "updatedemail@example.com"
+    "email": "rafael.updated@example.com",
+    "password": "Admin@123"
 }
 
-### Delete user
-DELETE http://localhost:5000/api/signup/USER_ID_HERE
+### Get all users (Protected Route - Replace YOUR_TOKEN)
+GET http://localhost:5000/api/signup
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MmIyYWRiOWIxMjA1NTFkZDQ3N2ZiZiIsImlhdCI6MTc0NzY1OTQ4MywiZXhwIjoxNzQ3NzQ1ODgzfQ.G9Zi_V8FoKUOz9PUTyfQVcLsSWm2e6dNz5-K7sK-i1E
 
+### Get user by ID (Protected Route - Replace USER_ID and YOUR_TOKEN)
+GET http://localhost:5000/api/signup/682b2adb9b120551dd477fbf
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MmIyYWRiOWIxMjA1NTFkZDQ3N2ZiZiIsImlhdCI6MTc0NzY1OTQ4MywiZXhwIjoxNzQ3NzQ1ODgzfQ.G9Zi_V8FoKUOz9PUTyfQVcLsSWm2e6dNz5-K7sK-i1E
+
+### Update user (Protected Route - Replace USER_ID and YOUR_TOKEN)
+PUT http://localhost:5000/api/signup/682b2adb9b120551dd477fbf
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MmIyYWRiOWIxMjA1NTFkZDQ3N2ZiZiIsImlhdCI6MTc0NzY1OTQ4MywiZXhwIjoxNzQ3NzQ1ODgzfQ.G9Zi_V8FoKUOz9PUTyfQVcLsSWm2e6dNz5-K7sK-i1E
+
+{
+    "name": "Rafael Updated",
+    "email": "rafael.updated@example.com"
+}
+
+### Delete user (Protected Route - Replace USER_ID and YOUR_TOKEN)
+DELETE http://localhost:5000/api/signup/USER_ID
+Authorization: Bearer YOUR_TOKEN
+
+### Sign in
+POST http://localhost:5000/api/signin
+Content-Type: application/json
+
+{
+  "email": "ramosraf278@gmail.com",
+  "password": "Admin@123"
+}
 
 # =====================
 # SCHEDULE ROUTES
@@ -195,3 +217,28 @@ Content-Type: application/json
 
 ### Get all schedules
 GET http://localhost:5000/api/schedules
+
+# =====================
+# AUTH ROUTES
+# =====================
+
+### Verify Email
+GET http://localhost:5000/api/verify/YOUR_VERIFICATION_TOKEN
+
+### Protected Route Example (Requires Auth Token)
+GET http://localhost:5000/api/signup
+Authorization: Bearer YOUR_JWT_TOKEN
+
+### Protected User Profile (Requires Auth Token)
+GET http://localhost:5000/api/signup/682b23cbb89abe9ca498659f
+Authorization: Bearer YOUR_JWT_TOKEN
+
+### Protected User Update (Requires Auth Token)
+PUT http://localhost:5000/api/signup/682b23cbb89abe9ca498659f
+Authorization: Bearer YOUR_JWT_TOKEN
+Content-Type: application/json
+
+{
+  "name": "Updated Name",
+  "email": "updated.email@example.com"
+}
