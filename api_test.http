@@ -88,7 +88,7 @@ Content-Type: application/json
 GET http://localhost:5000/api/document-requests/docs
 
 ### Get a document request by ID
-GET http://localhost:5000/api/document-requests/docs/6827f10ee4e6fb2501433639
+GET http://localhost:5000/api/document-requests/docs/682c9a9279bf15ea58d0a13e
 
 ### Update a document request
 PUT http://localhost:5000/api/document-requests/docs/6827ef3ee4e6fb2501433626
@@ -103,7 +103,7 @@ Content-Type: application/json
 DELETE http://localhost:5000/api/document-requests/DOC_REQUEST_ID_HERE
 
 ### Get a document request with student details
-GET http://localhost:5000/api/document-requests/docs/with-student/6827f10ee4e6fb2501433639
+GET http://localhost:5000/api/document-requests/docs/with-student/682c9a9279bf15ea58d0a13e
 
 
 # ATTACHMENTS

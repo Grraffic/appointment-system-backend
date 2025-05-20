@@ -15,5 +15,4 @@ router.get("/:id", getStudentById);
 router.put("/:id", updateStudent);
 router.delete("/:id", deleteStudent);
 
-
 module.exports = router;
