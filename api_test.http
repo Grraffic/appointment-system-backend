@@ -242,3 +242,19 @@ Content-Type: application/json
   "name": "Updated Name",
   "email": "updated.email@example.com"
 }
+
+### =====================
+### AUTHENTICATION
+### =====================
+
+### Google OAuth Login
+# This will redirect to Google's login page
+GET http://localhost:5000/api/auth/google
+
+### Google OAuth Callback
+# This endpoint will be called by Google after successful authentication
+GET http://localhost:5000/api/auth/google/callback
+
+### Verify Google Authentication Token
+GET http://localhost:5000/api/auth/google/verify
+Authorization: Bearer your_jwt_token_here

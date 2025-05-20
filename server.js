@@ -11,8 +11,14 @@ const PORT = process.env.PORT || 5000;
 
 connectDB();
 
-app.use(cors({ origin: "http://localhost:5173" }));
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 app.use(express.json());
+
 
 // Ensure uploads directory exists
 const uploadDir = path.join(__dirname, "uploads");
