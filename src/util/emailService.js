@@ -1,18 +1,90 @@
 const nodemailer = require("nodemailer");
 
+// Validate email configuration
+const validateEmailConfig = () => {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) {
+    console.error(
+      "Missing email configuration. Please check your .env file for GMAIL_USER and GMAIL_PASS"
+    );
+    return false;
+  }
+  return true;
+};
+
 // Create transporter
 const transporter = nodemailer.createTransport({
+  service: "gmail",
   host: "smtp.gmail.com",
-  port: 587,
-  secure: false, // Use TLS
+  port: 465,
+  secure: true,
   auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASS, // This should be an App Password
+    user: process.env.GMAIL_USER || "",
+    pass: (process.env.GMAIL_PASS || "").replace(/\s+/g, ""), // Remove any spaces from the app password
   },
-  tls: {
-    rejectUnauthorized: false,
-  },
+  debug: true, // Enable debug logging
 });
+
+// Add debug logging function
+const logEmailError = (error) => {
+  console.error("Email Error Details:");
+  console.error("Error name:", error.name);
+  console.error("Error code:", error.code);
+  console.error("Response:", error.response);
+  console.error("Command:", error.command);
+  if (error.message) {
+    console.error("Error message:", error.message);
+  }
+};
+
+// Verify email service
+const verifyEmailService = async () => {
+  if (!validateEmailConfig()) {
+    return false;
+  }
+
+  try {
+    await transporter.verify();
+    console.log("Email service is ready");
+    return true;
+  } catch (error) {
+    console.error("Email service verification failed:", error);
+    return false;
+  }
+};
+
+// Wrapper function for sending emails
+const sendEmailSafely = async (mailOptions) => {
+  if (!(await verifyEmailService())) {
+    throw new Error("Email service is not properly configured");
+  }
+
+  try {
+    return await transporter.sendMail(mailOptions);
+  } catch (error) {
+    logEmailError(error);
+    throw error;
+  }
+};
+
+// Test email configuration
+const testEmailConfig = async () => {
+  try {
+    console.log("Testing email configuration...");
+    console.log("GMAIL_USER:", process.env.GMAIL_USER);
+    console.log("GMAIL_PASS length:", process.env.GMAIL_PASS?.length);
+
+    await transporter.verify();
+    console.log("Email configuration is valid");
+    return true;
+  } catch (error) {
+    console.error("Email configuration test failed:");
+    logEmailError(error);
+    return false;
+  }
+};
+
+// Call test configuration on startup
+testEmailConfig();
 
 // Verify email configuration
 const verifyEmailConfig = async () => {
@@ -51,7 +123,7 @@ exports.sendVerificationEmail = async (email, verificationToken) => {
   try {
     const verificationUrl = `${process.env.FRONTEND_URL}/verify/${verificationToken}`;
 
-    await transporter.sendMail({
+    await sendEmailSafely({
       from: `"LV AppointEase" <${process.env.GMAIL_USER}>`,
       to: email,
       subject: "Verify Your Email - LV AppointEase",
@@ -83,7 +155,7 @@ exports.sendPasswordResetEmail = async (email, resetToken) => {
   try {
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
 
-    await transporter.sendMail({
+    await sendEmailSafely({
       from: `"LV AppointEase" <${process.env.GMAIL_USER}>`,
       to: email,
       subject: "Password Reset - LV AppointEase",
@@ -112,7 +184,7 @@ exports.sendPasswordResetEmail = async (email, resetToken) => {
 // Send document request status update
 exports.sendDocumentRequestUpdate = async (email, details) => {
   try {
-    await transporter.sendMail({
+    await sendEmailSafely({
       from: `"LV AppointEase" <${process.env.GMAIL_USER}>`,
       to: email,
       subject: `Document Request Update - ${details.status.toUpperCase()}`,
