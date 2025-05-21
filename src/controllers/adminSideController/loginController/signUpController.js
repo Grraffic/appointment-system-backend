@@ -197,7 +197,7 @@
 // signUpController.js
 const User = require("../../../models/adminSideSchema/loginSchema/userSchema");
 const { generateToken } = require("../../../util/generateToken");
-const bcrypt = require("bcryptjs");
+const bcrypt = require("bcrypt");
 const mongoose = require("mongoose");
 
 // Register a new user

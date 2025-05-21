@@ -25,81 +25,81 @@ const transporter = nodemailer.createTransport({
 });
 
 // Add debug logging function
-const logEmailError = (error) => {
-  console.error("Email Error Details:");
-  console.error("Error name:", error.name);
-  console.error("Error code:", error.code);
-  console.error("Response:", error.response);
-  console.error("Command:", error.command);
-  if (error.message) {
-    console.error("Error message:", error.message);
-  }
-};
+// const logEmailError = (error) => {
+//   // console.error("Email Error Details:");
+//   // console.error("Error name:", error.name);
+//   // console.error("Error code:", error.code);
+//   // console.error("Response:", error.response);
+//   // console.error("Command:", error.command);
+//   if (error.message) {
+//     console.error("Error message:", error.message);
+//   }
+// };
 
-// Verify email service
-const verifyEmailService = async () => {
-  if (!validateEmailConfig()) {
-    return false;
-  }
+// // Verify email service
+// const verifyEmailService = async () => {
+//   if (!validateEmailConfig()) {
+//     return false;
+//   }
 
-  try {
-    await transporter.verify();
-    console.log("Email service is ready");
-    return true;
-  } catch (error) {
-    console.error("Email service verification failed:", error);
-    return false;
-  }
-};
+//   try {
+//     await transporter.verify();
+//     console.log("Email service is ready");
+//     return true;
+//   } catch (error) {
+//     console.error("Email service verification failed:", error);
+//     return false;
+//   }
+// };
 
-// Wrapper function for sending emails
-const sendEmailSafely = async (mailOptions) => {
-  if (!(await verifyEmailService())) {
-    throw new Error("Email service is not properly configured");
-  }
+// // Wrapper function for sending emails
+// const sendEmailSafely = async (mailOptions) => {
+//   if (!(await verifyEmailService())) {
+//     throw new Error("Email service is not properly configured");
+//   }
 
-  try {
-    return await transporter.sendMail(mailOptions);
-  } catch (error) {
-    logEmailError(error);
-    throw error;
-  }
-};
+//   try {
+//     return await transporter.sendMail(mailOptions);
+//   } catch (error) {
+//     logEmailError(error);
+//     throw error;
+//   }
+// };
 
 // Test email configuration
-const testEmailConfig = async () => {
-  try {
-    console.log("Testing email configuration...");
-    console.log("GMAIL_USER:", process.env.GMAIL_USER);
-    console.log("GMAIL_PASS length:", process.env.GMAIL_PASS?.length);
+// const testEmailConfig = async () => {
+//   try {
+//     console.log("Testing email configuration...");
+//     console.log("GMAIL_USER:", process.env.GMAIL_USER);
+//     console.log("GMAIL_PASS length:", process.env.GMAIL_PASS?.length);
 
-    await transporter.verify();
-    console.log("Email configuration is valid");
-    return true;
-  } catch (error) {
-    console.error("Email configuration test failed:");
-    logEmailError(error);
-    return false;
-  }
-};
+//     await transporter.verify();
+//     console.log("Email configuration is valid");
+//     return true;
+//   } catch (error) {
+//     console.error("Email configuration test failed:");
+//     logEmailError(error);
+//     return false;
+//   }
+// };
 
-// Call test configuration on startup
-testEmailConfig();
+// // Call test configuration on startup
+// testEmailConfig();
 
 // Verify email configuration
-const verifyEmailConfig = async () => {
-  try {
-    await transporter.verify();
-    console.log("Email service is ready");
-    return true;
-  } catch (error) {
-    console.error("Email service configuration error:", error);
-    return false;
-  }
-};
+// const verifyEmailConfig = async () => {
+//   try {
+//     await transporter.verify();
+//     console.log("Email service is ready");
+//     return true;
+//   } catch (error) {
+//     console.error("Email service configuration error:", error);
+//     return false;
+//   }
+// };
 
 // Call verification when the service starts
-verifyEmailConfig();
+// verifyEmailConfig();
 
 // Add error handling wrapper for all email sending functions
 const sendEmailWithRetry = async (mailOptions) => {

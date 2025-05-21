@@ -122,7 +122,7 @@
 
 const User = require("../../../models/adminSideSchema/loginSchema/userSchema");
 const { generateToken } = require("../../../util/generateToken");
-const bcrypt = require("bcryptjs");
+const bcrypt = require("bcrypt");
 
 exports.signin = async (req, res) => {
   try {
