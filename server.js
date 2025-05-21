@@ -1,14 +1,16 @@
 const express = require("express");
 const cors = require("cors");
-const connectDB = require("./src/config/db");
+const connectDB = require("./src/config/db"); // Correct path to your db.js
 const routes = require("./src/routes");
 const path = require("path");
 const fs = require("fs");
+const holidaysRouter = require("./src/routes/adminSideRoute/holiday.router");
 require("dotenv").config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Connect to Database
 connectDB();
 
 app.use(
@@ -28,13 +30,14 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-// Logger
+// Logger Middleware
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.path}`);
-  console.log("Body:", req.body);
   next();
 });
 
+// API Routes
+app.use('/api/holidays', holidaysRouter);
 app.use("/api", routes);
 
 app.listen(PORT, () => {
