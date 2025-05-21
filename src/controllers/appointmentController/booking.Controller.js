@@ -2,7 +2,7 @@
 const Booking = require("../../models/appointmentSchema/bookingSchema");
 const Schedule = require("../../models/adminSideSchema/maintenanceSchema/scheduleSchema");
 const User = require("../../models/adminSideSchema/loginSchema/userSchema");
-const { sendAppointmentConfirmation } = require("../../util/emailService");
+// const { sendAppointmentConfirmation } = require("../../util/emailService");
 
 // @desc    Create a new booking
 // @route   POST /api/bookings

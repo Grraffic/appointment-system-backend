@@ -30,8 +30,6 @@ exports.getAllSchedules = async (req, res) => {
   }
 };
 
-// ...existing code...
-
 // @desc    Update a schedule
 // @route   PUT /api/schedules/:id
 exports.updateSchedule = async (req, res) => {
