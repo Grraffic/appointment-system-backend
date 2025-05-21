@@ -2,12 +2,49 @@ const nodemailer = require("nodemailer");
 
 // Create transporter
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false, // Use TLS
   auth: {
     user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASS,
+    pass: process.env.GMAIL_PASS, // This should be an App Password
+  },
+  tls: {
+    rejectUnauthorized: false,
   },
 });
+
+// Verify email configuration
+const verifyEmailConfig = async () => {
+  try {
+    await transporter.verify();
+    console.log("Email service is ready");
+    return true;
+  } catch (error) {
+    console.error("Email service configuration error:", error);
+    return false;
+  }
+};
+
+// Call verification when the service starts
+verifyEmailConfig();
+
+// Add error handling wrapper for all email sending functions
+const sendEmailWithRetry = async (mailOptions) => {
+  try {
+    const result = await transporter.sendMail(mailOptions);
+    console.log("Email sent successfully");
+    return result;
+  } catch (error) {
+    console.error("Error sending email:", error);
+    if (error.code === "EAUTH") {
+      console.error(
+        "Authentication error. Please check your email credentials."
+      );
+    }
+    throw error;
+  }
+};
 
 // Send email verification
 exports.sendVerificationEmail = async (email, verificationToken) => {
