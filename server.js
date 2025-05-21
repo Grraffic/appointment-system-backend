@@ -19,16 +19,14 @@ app.use(
 );
 app.use(express.json());
 
-
-// Ensure uploads directory exists
-const uploadDir = path.join(__dirname, "uploads");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir);
-  console.log("✅ Created 'uploads/' folder");
-}
-
-// Serve uploaded files
+// Serve uploaded files statically
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// Create uploads directory if it doesn't exist
+const uploadsDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
 
 // Logger
 app.use((req, res, next) => {
