@@ -8,12 +8,17 @@ const { sendAppointmentConfirmation } = require("../../util/emailService");
 // @route   POST /api/bookings
 exports.createBooking = async (req, res) => {
   try {
-    const { studentId, scheduleId } = req.body;
-
-    // Check if schedule exists and is available
+    const { studentId, scheduleId } = req.body; // Check if schedule exists and is available
     const schedule = await Schedule.findById(scheduleId);
     if (!schedule) {
       return res.status(404).json({ message: "Schedule not found" });
+    }
+
+    // Check if slots are still available
+    if (schedule.slots <= 0) {
+      return res
+        .status(400)
+        .json({ message: "No slots available for this schedule" });
     }
 
     // Check if slot is already booked by this student
@@ -26,9 +31,33 @@ exports.createBooking = async (req, res) => {
     const student = await Student.findById(studentId);
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
-    } // Create new booking
-    const newBooking = new Booking({ studentId, scheduleId });
-    const savedBooking = await newBooking.save();
+    } // Start a session for transaction
+    const session = await Booking.startSession();
+    let savedBooking;
+
+    try {
+      await session.withTransaction(async () => {
+        // Decrease slot count
+        const updatedSchedule = await Schedule.findByIdAndUpdate(
+          scheduleId,
+          { $inc: { slots: -1 } },
+          { new: true, session }
+        );
+
+        if (!updatedSchedule) {
+          throw new Error("Failed to update schedule slots");
+        }
+
+        // Create new booking
+        const newBooking = new Booking({ studentId, scheduleId });
+        savedBooking = await newBooking.save({ session });
+      });
+    } finally {
+      await session.endSession();
+    }
+
+    // Get the updated schedule for response
+    const updatedSchedule = await Schedule.findById(scheduleId);
 
     // Format date and time for email
     const appointmentDate = new Date(schedule.date);
@@ -52,11 +81,11 @@ exports.createBooking = async (req, res) => {
       console.error("Failed to send confirmation email:", emailError);
       // Continue with booking success response even if email fails
     }
-
     res.status(201).json({
       message:
         "Booking created successfully. A confirmation email has been sent.",
       booking: savedBooking,
+      remainingSlots: updatedSchedule.slots,
     });
   } catch (err) {
     console.error("Booking error:", err);

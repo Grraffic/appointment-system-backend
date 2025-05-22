@@ -5,6 +5,11 @@ const scheduleSchema = new mongoose.Schema(
     slots: {
       type: Number,
       required: true,
+      min: [0, "Slots cannot be negative"],
+      validate: {
+        validator: Number.isInteger,
+        message: "Slots must be a whole number",
+      },
     },
     date: {
       type: Date,

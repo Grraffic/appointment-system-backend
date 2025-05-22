@@ -12,11 +12,14 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// Add error handling wrapper for all email sending functions
-const sendEmailWithRetry = async (mailOptions) => {
+// Send email helper function
+const sendEmail = async (mailOptions) => {
   try {
-    const result = await transporter.sendMail(mailOptions);
-    console.log("Email sent successfully");
+    const result = await transporter.sendMail({
+      from: `"LV AppointEase" <${process.env.GMAIL_USER}>`,
+      ...mailOptions,
+    });
+    console.log("Email sent successfully:", result.messageId);
     return result;
   } catch (error) {
     console.error("Error sending email:", error);
@@ -34,7 +37,7 @@ exports.sendVerificationEmail = async (email, verificationToken) => {
   try {
     const verificationUrl = `${process.env.FRONTEND_URL}/verify/${verificationToken}`;
 
-    await sendEmailSafely({
+    await sendEmail({
       from: `"LV AppointEase" <${process.env.GMAIL_USER}>`,
       to: email,
       subject: "Verify Your Email - LV AppointEase",
@@ -95,7 +98,7 @@ exports.sendPasswordResetEmail = async (email, resetToken) => {
 // Send document request status update
 exports.sendDocumentRequestUpdate = async (email, details) => {
   try {
-    await sendEmailSafely({
+    await transporter.sendMail({
       from: `"LV AppointEase" <${process.env.GMAIL_USER}>`,
       to: email,
       subject: `Document Request Update - ${details.status.toUpperCase()}`,
