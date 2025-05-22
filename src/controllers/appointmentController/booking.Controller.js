@@ -1,14 +1,14 @@
 // controllers/appointmentController/bookingController.js
 const Booking = require("../../models/appointmentSchema/bookingSchema");
 const Schedule = require("../../models/adminSideSchema/maintenanceSchema/scheduleSchema");
-const User = require("../../models/adminSideSchema/loginSchema/userSchema");
-// const { sendAppointmentConfirmation } = require("../../util/emailService");
+const Student = require("../../models/appointmentSchema/studentSchema");
+const { sendAppointmentConfirmation } = require("../../util/emailService");
 
 // @desc    Create a new booking
 // @route   POST /api/bookings
 exports.createBooking = async (req, res) => {
   try {
-    const { userId, scheduleId } = req.body;
+    const { studentId, scheduleId } = req.body;
 
     // Check if schedule exists and is available
     const schedule = await Schedule.findById(scheduleId);
@@ -16,20 +16,18 @@ exports.createBooking = async (req, res) => {
       return res.status(404).json({ message: "Schedule not found" });
     }
 
-    // Check if slot is already booked by this user
-    const existing = await Booking.findOne({ userId, scheduleId });
+    // Check if slot is already booked by this student
+    const existing = await Booking.findOne({ studentId, scheduleId });
     if (existing) {
       return res.status(400).json({ message: "You already booked this slot" });
     }
 
-    // Get user details for email notification
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    // Create new booking
-    const newBooking = new Booking({ userId, scheduleId });
+    // Get student details for email notification
+    const student = await Student.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    } // Create new booking
+    const newBooking = new Booking({ studentId, scheduleId });
     const savedBooking = await newBooking.save();
 
     // Format date and time for email
@@ -43,8 +41,8 @@ exports.createBooking = async (req, res) => {
 
     // Send confirmation email
     try {
-      await sendAppointmentConfirmation(user.email, {
-        name: user.name,
+      await sendAppointmentConfirmation(student.emailAddress, {
+        name: `${student.firstName} ${student.surname}`,
         date: formattedDate,
         startTime: schedule.startTime,
         endTime: schedule.endTime,
@@ -73,7 +71,7 @@ exports.createBooking = async (req, res) => {
 exports.getAllBookings = async (req, res) => {
   try {
     const bookings = await Booking.find()
-      .populate("userId", "name email")
+      .populate("studentId", "surname firstName emailAddress")
       .populate("scheduleId");
     res.status(200).json(bookings);
   } catch (err) {
@@ -84,12 +82,12 @@ exports.getAllBookings = async (req, res) => {
   }
 };
 
-// @desc    Get bookings for a specific user
-// @route   GET /api/bookings/user/:userId
-exports.getBookingsByUser = async (req, res) => {
+// @desc    Get bookings for a specific student
+// @route   GET /api/bookings/student/:studentId
+exports.getBookingsByStudent = async (req, res) => {
   try {
-    const { userId } = req.params;
-    const bookings = await Booking.find({ userId })
+    const { studentId } = req.params;
+    const bookings = await Booking.find({ studentId })
       .populate("scheduleId")
       .sort({ "scheduleId.date": 1 });
     res.status(200).json(bookings);

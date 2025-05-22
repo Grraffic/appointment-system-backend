@@ -3,9 +3,9 @@ const mongoose = require("mongoose");
 
 const bookingSchema = new mongoose.Schema(
   {
-    userId: {
+    studentId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User", // Change if you use a different model
+      ref: "Student",
       required: true,
     },
     scheduleId: {

@@ -9,7 +9,7 @@ router.post("/", bookingController.createBooking);
 // Get all bookings
 router.get("/", bookingController.getAllBookings);
 
-// Get bookings for a specific user
-router.get("/user/:userId", bookingController.getBookingsByUser);
+// Get bookings for a specific student
+router.get("/student/:studentId", bookingController.getBookingsByStudent);
 
 module.exports = router;
