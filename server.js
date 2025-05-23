@@ -4,7 +4,6 @@ const connectDB = require("./src/config/db"); // Correct path to your db.js
 const routes = require("./src/routes");
 const path = require("path");
 const fs = require("fs");
-const holidaysRouter = require("./src/routes/adminSideRoute/holiday.router");
 require("dotenv").config();
 
 const app = express();
@@ -37,7 +36,6 @@ app.use((req, res, next) => {
 });
 
 // API Routes
-app.use('/api/holidays', holidaysRouter);
 app.use("/api", routes);
 
 app.listen(PORT, () => {
