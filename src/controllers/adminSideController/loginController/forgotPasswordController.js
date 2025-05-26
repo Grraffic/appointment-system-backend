@@ -1,5 +1,5 @@
-const OTP = require("../models/OTP");
-const User = require("../models/adminSideSchema/loginSchema/userSchema");
+const OTP = require("../../../models/adminSideSchema/loginSchema/OTP");
+const User = require("../../../models/adminSideSchema/loginSchema/userSchema");
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcryptjs");
 require("dotenv").config();
