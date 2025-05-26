@@ -30,6 +30,10 @@ const userSchema = new mongoose.Schema({
   picture: {
     type: String,
   },
+  profilePicture: {
+    type: String,
+    default: null,
+  },
   role: {
     type: String,
     enum: ["admin", "staff"],
