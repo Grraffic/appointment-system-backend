@@ -256,3 +256,11 @@ GET http://localhost:5000/api/auth/google/callback
 ### Verify Google Authentication Token
 GET http://localhost:5000/api/auth/google/verify
 Authorization: Bearer your_jwt_token_here
+
+### Request OTP
+POST http://localhost:5000/api/forgot-password/request-otp
+Content-Type: application/json
+
+{
+  "email": "ramosraf278@gmail.com"
+}

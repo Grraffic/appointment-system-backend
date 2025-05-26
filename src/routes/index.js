@@ -19,6 +19,10 @@ const authRoutes = require("./adminSideRoute/loginRoute/authRoutes");
 // Auth routes
 router.use("/signup", require("./adminSideRoute/loginRoute/signUpRoute"));
 router.use("/signin", require("./adminSideRoute/loginRoute/signInRoute"));
+router.use(
+  "/forgot-password",
+  require("./adminSideRoute/loginRoute/forgotPasswordRoute")
+);
 
 // Other routes
 router.use("/contact", require("./contactFormRoute"));
