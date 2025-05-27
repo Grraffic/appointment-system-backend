@@ -108,72 +108,63 @@ const getDocumentRequestsWithDetails = async (req, res) => {
     const attachments = await Attachment.find();
 
     // Map requests to include attachment info
-    const result = requests.map((req) => {
-      try {
-        // Skip if no student data
-        if (!req.student || !req.student._id) {
+    // Replace the generateTransactionNumber() call with the stored value
+    const result = requests
+      .map((req) => {
+        try {
+          if (
+            !req.student ||
+            !req.student._id ||
+            !req.student.transactionNumber
+          ) {
+            return null; // Mark as invalid
+          }
+
+          const studentAttachments = attachments
+            .filter((att) => att.files && Array.isArray(att.files))
+            .flatMap((att) => att.files)
+            .filter(
+              (file) =>
+                file &&
+                file.student &&
+                file.student.toString() === req.student._id.toString()
+            );
+
+          const filenames = studentAttachments
+            .filter((file) => file && file.filename)
+            .map((file) => file.filename);
+
           return {
-            transactionNumber: generateTransactionNumber(),
-            name: 'N/A',
-            lastSY: 'N/A',
-            program: 'N/A',
-            contact: 'N/A',
-            email: 'N/A',
-            attachment: 'No attachments',
-            request: 'No documents selected',
-            date: 'N/A'
+            transactionNumber: req.student.transactionNumber,
+            name: `${req.student.surname || ""}, ${
+              req.student.firstName || ""
+            } ${req.student.middleName || ""}`.trim(),
+            lastSY: req.student.lastSchoolYearAttended || "N/A",
+            program: req.student.courseOrStrand || "N/A",
+            contact: req.student.contactNumber || "N/A",
+            email: req.student.emailAddress || "N/A",
+            attachment:
+              filenames.length > 0 ? filenames.join(", ") : "No attachments",
+            request: Array.isArray(req.selectedDocuments)
+              ? req.selectedDocuments.join(", ")
+              : "No documents selected",
+            date: req.dateOfRequest
+              ? req.dateOfRequest.toISOString().split("T")[0]
+              : "N/A",
           };
+        } catch (error) {
+          console.error("Error processing request:", error);
+          return null; // Mark as invalid
         }
-
-        // Find attachments for this student
-        const studentAttachments = attachments
-          .filter(att => att.files && Array.isArray(att.files))
-          .flatMap(att => att.files)
-          .filter(file => 
-            file && 
-            file.student && 
-            file.student.toString() === req.student._id.toString()
-          );
-
-        // Get filenames safely
-        const filenames = studentAttachments
-          .filter(file => file && file.filename)
-          .map(file => file.filename);
-
-        return {
-          transactionNumber: generateTransactionNumber(),
-          name: req.student ? `${req.student.surname || ''}, ${req.student.firstName || ''} ${req.student.middleName || ''}`.trim() : 'N/A',
-          lastSY: req.student?.lastSchoolYearAttended || 'N/A',
-          program: req.student?.courseOrStrand || 'N/A',
-          contact: req.student?.contactNumber || 'N/A',
-          email: req.student?.emailAddress || 'N/A',
-          attachment: filenames.length > 0 ? filenames.join(", ") : 'No attachments',
-          request: Array.isArray(req.selectedDocuments) ? req.selectedDocuments.join(", ") : 'No documents selected',
-          date: req.dateOfRequest ? req.dateOfRequest.toISOString().split("T")[0] : 'N/A',
-        };
-      } catch (error) {
-        console.error("Error processing request:", error);
-        // Return a safe default for this request
-        return {
-          transactionNumber: generateTransactionNumber(),
-          name: 'Error processing data',
-          lastSY: 'N/A',
-          program: 'N/A',
-          contact: 'N/A',
-          email: 'N/A',
-          attachment: 'No attachments',
-          request: 'No documents selected',
-          date: 'N/A'
-        };
-      }
-    });
+      })
+      .filter((entry) => entry !== null); // ✅ Remove all null/invalid rows
 
     res.status(200).json(result);
   } catch (error) {
     console.error("Error fetching document requests with details:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       message: "Server error",
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined 
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
 };

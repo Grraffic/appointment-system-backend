@@ -1,5 +1,22 @@
 const Student = require("../../models/appointmentSchema/studentSchema");
 
+// Generate a unique transaction number
+const generateTransactionNumber = async () => {
+  let transactionNumber;
+  let isUnique = false;
+
+  while (!isUnique) {
+    const randomNumber = Math.floor(Math.random() * 900000) + 100000;
+    const randomSuffix = Math.floor(Math.random() * 900) + 100;
+    transactionNumber = `TR${randomNumber}-${randomSuffix}`;
+
+    const existing = await Student.findOne({ transactionNumber });
+    if (!existing) isUnique = true;
+  }
+
+  return transactionNumber;
+};
+
 // Create Student
 const createStudent = async (req, res) => {
   try {
@@ -33,7 +50,10 @@ const createStudent = async (req, res) => {
       });
     }
 
+    const transactionNumber = await generateTransactionNumber();
+
     const newStudent = new Student({
+      transactionNumber,
       surname,
       firstName,
       middleName,
@@ -45,12 +65,12 @@ const createStudent = async (req, res) => {
     });
 
     await newStudent.save();
-    res
-      .status(201)
-      .json({
-        message: "Student data saved successfully",
-        studentId: newStudent._id,
-      });
+
+    res.status(201).json({
+      message: "Student data saved successfully",
+      studentId: newStudent._id,
+      transactionNumber: newStudent.transactionNumber,
+    });
   } catch (error) {
     console.error("Error saving student:", error.message);
     res.status(500).json({ message: "Server error" });
