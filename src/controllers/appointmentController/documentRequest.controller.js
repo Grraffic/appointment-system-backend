@@ -105,41 +105,67 @@ const getDocumentRequestsWithDetails = async (req, res) => {
       .sort({ dateOfRequest: -1 });
 
     // Get all attachments
-    const attachments = await Attachment.find().populate('files.student');
+    const attachments = await Attachment.find();
 
     // Map requests to include attachment info
     const result = requests.map((req) => {
-      // Find attachments for this student
-      const studentAttachments = attachments
-        .filter(att => {
-          // Check if any file in the attachment belongs to this student
-          return att.files.some(file => 
-            file.student && file.student._id.toString() === req.student._id.toString()
+      try {
+        // Skip if no student data
+        if (!req.student || !req.student._id) {
+          return {
+            transactionNumber: generateTransactionNumber(),
+            name: 'N/A',
+            lastSY: 'N/A',
+            program: 'N/A',
+            contact: 'N/A',
+            email: 'N/A',
+            attachment: 'No attachments',
+            request: 'No documents selected',
+            date: 'N/A'
+          };
+        }
+
+        // Find attachments for this student
+        const studentAttachments = attachments
+          .filter(att => att.files && Array.isArray(att.files))
+          .flatMap(att => att.files)
+          .filter(file => 
+            file && 
+            file.student && 
+            file.student.toString() === req.student._id.toString()
           );
-        })
-        .flatMap(att => att.files)
-        .filter(file => file.student && file.student._id.toString() === req.student._id.toString());
 
-      console.log('Student attachments:', {
-        studentId: req.student._id,
-        attachments: studentAttachments
-      });
+        // Get filenames safely
+        const filenames = studentAttachments
+          .filter(file => file && file.filename)
+          .map(file => file.filename);
 
-      return {
-        transactionNumber: generateTransactionNumber(), // Generate transaction number
-        name: req.student ? `${req.student.surname || ''}, ${req.student.firstName || ''} ${req.student.middleName || ''}`.trim() : 'N/A',
-        lastSY: req.student?.lastSchoolYearAttended || 'N/A',
-        program: req.student?.courseOrStrand || 'N/A',
-        contact: req.student?.contactNumber || 'N/A',
-        email: req.student?.emailAddress || 'N/A',
-        attachment: studentAttachments.length > 0 
-          ? studentAttachments.map(file => file.filename).join(", ")
-          : 'No attachments',
-        request: Array.isArray(req.selectedDocuments) 
-          ? req.selectedDocuments.join(", ")
-          : 'No documents selected',
-        date: req.dateOfRequest ? req.dateOfRequest.toISOString().split("T")[0] : 'N/A',
-      };
+        return {
+          transactionNumber: generateTransactionNumber(),
+          name: req.student ? `${req.student.surname || ''}, ${req.student.firstName || ''} ${req.student.middleName || ''}`.trim() : 'N/A',
+          lastSY: req.student?.lastSchoolYearAttended || 'N/A',
+          program: req.student?.courseOrStrand || 'N/A',
+          contact: req.student?.contactNumber || 'N/A',
+          email: req.student?.emailAddress || 'N/A',
+          attachment: filenames.length > 0 ? filenames.join(", ") : 'No attachments',
+          request: Array.isArray(req.selectedDocuments) ? req.selectedDocuments.join(", ") : 'No documents selected',
+          date: req.dateOfRequest ? req.dateOfRequest.toISOString().split("T")[0] : 'N/A',
+        };
+      } catch (error) {
+        console.error("Error processing request:", error);
+        // Return a safe default for this request
+        return {
+          transactionNumber: generateTransactionNumber(),
+          name: 'Error processing data',
+          lastSY: 'N/A',
+          program: 'N/A',
+          contact: 'N/A',
+          email: 'N/A',
+          attachment: 'No attachments',
+          request: 'No documents selected',
+          date: 'N/A'
+        };
+      }
     });
 
     res.status(200).json(result);
