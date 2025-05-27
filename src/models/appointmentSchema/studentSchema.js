@@ -2,6 +2,7 @@
 const mongoose = require("mongoose");
 
 const studentSchema = new mongoose.Schema({
+  transactionNumber: {type: String, unique: true},
   surname: { type: String, required: true, trim: true },
   firstName: { type: String, required: true, trim: true },
   middleName: { type: String, trim: true },

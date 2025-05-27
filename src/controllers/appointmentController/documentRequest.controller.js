@@ -1,5 +1,6 @@
 const DocumentRequest = require("../../models/appointmentSchema/requestSchema");
 const Student = require("../../models/appointmentSchema/studentSchema");
+const Attachment = require("../../models/appointmentSchema/attachmentSchema");
 const { sendDocumentRequestUpdate } = require("../../util/emailService");
 
 // Create Document Request
@@ -90,7 +91,66 @@ const getDocumentRequestWithStudent = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+const generateTransactionNumber = () => {
+  const randomNumber = Math.floor(Math.random() * 900000) + 100000; // Generate a 6-digit random number
+  const randomSuffix = Math.floor(Math.random() * 900) + 100; // Generate a 3-digit random number
+  return `TR${randomNumber}-${randomSuffix}`;
+};
 
+const getDocumentRequestsWithDetails = async (req, res) => {
+  try {
+    // Get all requests with student info
+    const requests = await DocumentRequest.find()
+      .populate("student")
+      .sort({ dateOfRequest: -1 });
+
+    // Get all attachments
+    const attachments = await Attachment.find().populate('files.student');
+
+    // Map requests to include attachment info
+    const result = requests.map((req) => {
+      // Find attachments for this student
+      const studentAttachments = attachments
+        .filter(att => {
+          // Check if any file in the attachment belongs to this student
+          return att.files.some(file => 
+            file.student && file.student._id.toString() === req.student._id.toString()
+          );
+        })
+        .flatMap(att => att.files)
+        .filter(file => file.student && file.student._id.toString() === req.student._id.toString());
+
+      console.log('Student attachments:', {
+        studentId: req.student._id,
+        attachments: studentAttachments
+      });
+
+      return {
+        transactionNumber: generateTransactionNumber(), // Generate transaction number
+        name: req.student ? `${req.student.surname || ''}, ${req.student.firstName || ''} ${req.student.middleName || ''}`.trim() : 'N/A',
+        lastSY: req.student?.lastSchoolYearAttended || 'N/A',
+        program: req.student?.courseOrStrand || 'N/A',
+        contact: req.student?.contactNumber || 'N/A',
+        email: req.student?.emailAddress || 'N/A',
+        attachment: studentAttachments.length > 0 
+          ? studentAttachments.map(file => file.filename).join(", ")
+          : 'No attachments',
+        request: Array.isArray(req.selectedDocuments) 
+          ? req.selectedDocuments.join(", ")
+          : 'No documents selected',
+        date: req.dateOfRequest ? req.dateOfRequest.toISOString().split("T")[0] : 'N/A',
+      };
+    });
+
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Error fetching document requests with details:", error);
+    res.status(500).json({ 
+      message: "Server error",
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined 
+    });
+  }
+};
 // Update document request
 const updateDocumentRequest = async (req, res) => {
   try {
@@ -154,4 +214,5 @@ module.exports = {
   getDocumentRequestWithStudent,
   updateDocumentRequest,
   deleteDocumentRequest,
+  getDocumentRequestsWithDetails,
 };
