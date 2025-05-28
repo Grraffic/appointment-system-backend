@@ -1,6 +1,7 @@
 const DocumentRequest = require("../../models/appointmentSchema/requestSchema");
 const Student = require("../../models/appointmentSchema/studentSchema");
 const Attachment = require("../../models/appointmentSchema/attachmentSchema");
+const Booking = require("../../models/appointmentSchema/bookingSchema");
 const { sendDocumentRequestUpdate } = require("../../util/emailService");
 
 // Create Document Request
@@ -104,11 +105,31 @@ const getDocumentRequestsWithDetails = async (req, res) => {
       .populate("student")
       .sort({ dateOfRequest: -1 });
 
+    if (!requests || !Array.isArray(requests)) {
+      return res.status(200).json([]);
+    }
+
     // Get all attachments
     const attachments = await Attachment.find();
 
+    // Get all bookings with schedule info
+    const bookings = await Booking.find()
+      .populate("scheduleId")
+      .sort({ "scheduleId.date": 1 });
+
+    // Create a map of student IDs to their bookings
+    const bookingMap = bookings.reduce((acc, booking) => {
+      if (booking.studentId && booking.scheduleId) {
+        acc[booking.studentId.toString()] = {
+          date: booking.scheduleId.date,
+          startTime: booking.scheduleId.startTime,
+          endTime: booking.scheduleId.endTime
+        };
+      }
+      return acc;
+    }, {});
+
     // Map requests to include attachment info
-    // Replace the generateTransactionNumber() call with the stored value
     const result = requests
       .map((req) => {
         try {
@@ -134,6 +155,9 @@ const getDocumentRequestsWithDetails = async (req, res) => {
             .filter((file) => file && file.filename)
             .map((file) => file.filename);
 
+          // Get booking info for this student
+          const bookingInfo = bookingMap[req.student._id.toString()];
+
           return {
             transactionNumber: req.student.transactionNumber,
             name: `${req.student.surname || ""}, ${
@@ -151,13 +175,23 @@ const getDocumentRequestsWithDetails = async (req, res) => {
             date: req.dateOfRequest
               ? req.dateOfRequest.toISOString().split("T")[0]
               : "N/A",
+            timeSlot: bookingInfo 
+              ? `${bookingInfo.startTime} - ${bookingInfo.endTime}` 
+              : "Not scheduled",
+            appointmentDate: bookingInfo 
+              ? new Date(bookingInfo.date).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                }) 
+              : "Not scheduled"
           };
         } catch (error) {
           console.error("Error processing request:", error);
           return null; // Mark as invalid
         }
       })
-      .filter((entry) => entry !== null); // ✅ Remove all null/invalid rows
+      .filter((entry) => entry !== null); // Remove all null/invalid rows
 
     res.status(200).json(result);
   } catch (error) {
@@ -215,11 +249,23 @@ const updateDocumentRequest = async (req, res) => {
 // Delete document request
 const deleteDocumentRequest = async (req, res) => {
   try {
-    const deleted = await DocumentRequest.findByIdAndDelete(req.params.id);
-    if (!deleted) return res.status(404).json({ message: "Request not found" });
-    res.status(200).json({ message: "Request deleted successfully" });
+    const { transactionNumber } = req.params;
+    
+    // Find the student by transaction number
+    const student = await Student.findOne({ transactionNumber });
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    // Find and delete the document request
+    const deleted = await DocumentRequest.findOneAndDelete({ student: student._id });
+    if (!deleted) {
+      return res.status(404).json({ message: "Document request not found" });
+    }
+
+    res.status(200).json({ message: "Document request deleted successfully" });
   } catch (error) {
-    console.error("Error deleting request:", error);
+    console.error("Error deleting document request:", error);
     res.status(500).json({ message: "Server error" });
   }
 };

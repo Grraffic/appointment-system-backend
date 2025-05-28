@@ -1,7 +1,7 @@
 const AppointmentStatus = require("../../models/adminSideSchema/dashboard/statusSchema");
 const { sendAppointmentStatusUpdate } = require("../../util/emailService");
 
-// Get all appointment statuses
+// Get all appointment stat uses
 exports.getAllStatuses = async (req, res) => {
   try {
     const statuses = await AppointmentStatus.find().sort({ dateOfRequest: -1 });
@@ -51,3 +51,26 @@ exports.updateStatus = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+// Delete status
+exports.deleteStatus = async (req, res) => {
+  try {
+    const { transactionNumber } = req.params;
+    const deleted = await AppointmentStatus.findOneAndDelete({ transactionNumber });
+    
+    if (!deleted) {
+      return res.status(404).json({ message: "Status not found" });
+    }
+    
+    res.status(200).json({ message: "Status deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting status:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// module.exports = {
+//   updateStatus,
+//   getAllStatuses,
+//   deleteStatus,
+// };

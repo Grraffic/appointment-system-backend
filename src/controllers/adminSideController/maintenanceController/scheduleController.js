@@ -1,19 +1,53 @@
 const Schedule = require("../../../models/adminSideSchema/maintenanceSchema/scheduleSchema");
 
+// Helper function to format time with AM/PM
+const formatTime = (time) => {
+  if (!time) return "";
+  const [hours, minutes] = time.split(':');
+  const hour = parseInt(hours);
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  const hour12 = hour % 12 || 12;
+  return `${hour12}:${minutes} ${ampm}`;
+};
+
+// Helper function to validate date
+const validateDate = (date) => {
+  const inputDate = new Date(date);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Reset time to start of day
+  
+  if (inputDate < today) {
+    throw new Error("Schedule date cannot be in the past");
+  }
+  return inputDate;
+};
+
 // @desc    Create a new schedule
 // @route   POST /api/schedules
 exports.createSchedule = async (req, res) => {
   try {
     const { slots, date, startTime, endTime } = req.body;
 
-    const newSchedule = new Schedule({ slots, date, startTime, endTime });
+    // Validate date
+    const validDate = validateDate(date);
+
+    // Format times with AM/PM
+    const formattedStartTime = formatTime(startTime);
+    const formattedEndTime = formatTime(endTime);
+
+    const newSchedule = new Schedule({ 
+      slots, 
+      date: validDate, 
+      startTime: formattedStartTime, 
+      endTime: formattedEndTime 
+    });
     const savedSchedule = await newSchedule.save();
 
     res.status(201).json(savedSchedule);
   } catch (err) {
     res
       .status(500)
-      .json({ message: "Failed to create schedule", error: err.message });
+      .json({ message: err.message || "Failed to create schedule", error: err.message });
   }
 };
 
@@ -37,9 +71,21 @@ exports.updateSchedule = async (req, res) => {
     const { id } = req.params;
     const { slots, date, startTime, endTime } = req.body;
 
+    // Validate date
+    const validDate = validateDate(date);
+
+    // Format times with AM/PM
+    const formattedStartTime = formatTime(startTime);
+    const formattedEndTime = formatTime(endTime);
+
     const updatedSchedule = await Schedule.findByIdAndUpdate(
       id,
-      { slots, date, startTime, endTime },
+      { 
+        slots, 
+        date: validDate, 
+        startTime: formattedStartTime, 
+        endTime: formattedEndTime 
+      },
       { new: true }
     );
 
@@ -50,7 +96,7 @@ exports.updateSchedule = async (req, res) => {
     res.status(200).json(updatedSchedule);
   } catch (err) {
     res.status(500).json({
-      message: "Failed to update schedule",
+      message: err.message || "Failed to update schedule",
       error: err.message,
     });
   }
