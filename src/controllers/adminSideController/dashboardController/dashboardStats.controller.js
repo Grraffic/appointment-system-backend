@@ -45,26 +45,39 @@ const getDashboardStats = async (req, res) => {
         COMPLETED: 0,
         REJECTED: 0,
       },
-    };
-
-    // Count statuses
+    }; // Count statuses
     statuses.forEach((status) => {
       // Keep status in uppercase to match frontend values
       const statusType = status.status || "PENDING";
       const timeSlot = status.timeSlot?.toLowerCase() || "";
 
-      // Only count if it's one of our known status types
-      if (stats.hasOwnProperty(statusType)) {
-        // Increment total counter for the status type
+      // Special handling for COMPLETED status
+      // If an appointment is COMPLETED, it means it was also APPROVED before
+      if (statusType === "COMPLETED") {
+        // Count in both COMPLETED and APPROVED
+        stats.COMPLETED++;
+        stats.APPROVED++;
+        if (timeSlot.includes("morning")) {
+          stats.morning.COMPLETED++;
+          stats.morning.APPROVED++;
+        } else if (timeSlot.includes("afternoon")) {
+          stats.afternoon.COMPLETED++;
+          stats.afternoon.APPROVED++;
+        }
+      }
+      // For other statuses, count normally
+      else if (stats.hasOwnProperty(statusType)) {
         stats[statusType]++;
-        stats.total++;
-
-        // Increment time-specific counter
         if (timeSlot.includes("morning")) {
           stats.morning[statusType]++;
         } else if (timeSlot.includes("afternoon")) {
           stats.afternoon[statusType]++;
         }
+      }
+
+      // Increment total for all valid statuses
+      if (stats.hasOwnProperty(statusType)) {
+        stats.total++;
       }
     });
 
