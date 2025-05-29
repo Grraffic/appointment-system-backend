@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: lvappointease-backend
+    name: appointment-system-backend
     env: node
     buildCommand: npm install
     startCommand: node server.js
@@ -13,7 +13,7 @@ services:
         sync: false
 
   - type: static
-    name: lvappointease
+    name: appointment-system
     buildCommand: npm run build
     publishDirectory: dist
     envVars:
