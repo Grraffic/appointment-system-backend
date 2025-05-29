@@ -197,3 +197,89 @@ exports.sendAppointmentConfirmation = async (email, appointmentDetails) => {
     return false;
   }
 };
+
+// Send appointment status update email
+exports.sendAppointmentStatusUpdate = async (
+  emailAddress,
+  { status, name, transactionNumber, appointmentDate, timeSlot }
+) => {
+  try {
+    // Debug logs
+    console.log("Sending status update email:", {
+      emailAddress,
+      status,
+      name,
+      transactionNumber,
+      appointmentDate,
+      timeSlot,
+    });
+
+    if (!emailAddress || !emailAddress.includes("@")) {
+      throw new Error(`Invalid email address: ${emailAddress}`);
+    }
+
+    // Normalize status to uppercase
+    status = status.toUpperCase();
+    console.log("Normalized email status:", status);
+    let subject, messageContent;
+
+    if (status === "APPROVED") {
+      subject = "Your Document Request Appointment has been Approved";
+      messageContent = `
+        <h2>Document Request Appointment Approved</h2>
+        <p>Dear ${name},</p>
+        <p>Your document request appointment (Transaction #: ${transactionNumber}) has been <strong style="color: #299057;">APPROVED</strong>.</p>
+        <p>Appointment Details:</p>
+        <ul>
+          <li>Date: ${appointmentDate}</li>
+          <li>Time: ${timeSlot}</li>
+        </ul>
+        <p>Please make sure to arrive on time for your appointment. Don't forget to bring any necessary identification or documents.</p>
+        <p>Thank you for using our services!</p>
+      `;
+    } else if (status === "REJECTED") {
+      subject = "Your Document Request Appointment Status Update";
+      messageContent = `
+        <h2>Document Request Appointment Update</h2>
+        <p>Dear ${name},</p>
+        <p>We regret to inform you that your document request appointment (Transaction #: ${transactionNumber}) has been <strong style="color: #D52121;">REJECTED</strong>.</p>
+        <p>If you have any questions about this decision or would like to submit a new request, please contact our office.</p>
+        <p>Thank you for your understanding.</p>
+      `;
+    } else if (status === "COMPLETED") {
+      subject = "Your Document Request has been Completed";
+      messageContent = `
+        <h2>Document Request Completed</h2>
+        <p>Dear ${name},</p>
+        <p>We are pleased to inform you that your document request (Transaction #: ${transactionNumber}) has been <strong style="color: #354CCE;">COMPLETED</strong>.</p>
+        <p>Your requested documents are now ready for pickup. Please visit our office during business hours to collect them.</p>
+        <p>Remember to bring:</p>
+        <ul>
+          <li>Valid ID</li>
+          <li>Transaction number: ${transactionNumber}</li>
+          <li>Any applicable fees (if not paid)</li>
+        </ul>
+        <p>Thank you for using our services. We appreciate your patience throughout this process.</p>
+      `;
+    }
+
+    if (subject && messageContent) {
+      await sendEmail({
+        to: emailAddress,
+        subject: subject,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            ${messageContent}
+            <hr>
+            <p style="font-size: 12px; color: #666;">
+              This is an automated message from LV AppointEase. Please do not reply to this email.
+            </p>
+          </div>
+        `,
+      });
+    }
+  } catch (error) {
+    console.error("Error sending appointment status update email:", error);
+    throw error;
+  }
+};
