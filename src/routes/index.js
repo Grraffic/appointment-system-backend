@@ -43,6 +43,7 @@ router.use(
 router.use("/holidays", require("./adminSideRoute/holiday.router"));
 router.use("/events", require("./adminSideRoute/event.router"));
 router.use("/status", require("./appointmentRoute/statusRoute"));
+router.use("/feedback", require("./appointmentRoute/feedbackRoute"));
 // Add email verification route
 router.get("/verify/:token", require("./adminSideRoute/loginRoute/authRoutes"));
 module.exports = router;
