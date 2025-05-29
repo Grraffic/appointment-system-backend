@@ -16,7 +16,9 @@ exports.getAllStatuses = async (req, res) => {
 exports.updateStatus = async (req, res) => {
   try {
     const { transactionNumber } = req.params;
-    const { status } = req.body; // Find the appointment status and update it
+    const { status } = req.body;
+
+    // Find the appointment status and update it
     const appointmentStatus = await AppointmentStatus.findOne({
       transactionNumber,
     });
@@ -56,12 +58,14 @@ exports.updateStatus = async (req, res) => {
 exports.deleteStatus = async (req, res) => {
   try {
     const { transactionNumber } = req.params;
-    const deleted = await AppointmentStatus.findOneAndDelete({ transactionNumber });
-    
+    const deleted = await AppointmentStatus.findOneAndDelete({
+      transactionNumber,
+    });
+
     if (!deleted) {
       return res.status(404).json({ message: "Status not found" });
     }
-    
+
     res.status(200).json({ message: "Status deleted successfully" });
   } catch (error) {
     console.error("Error deleting status:", error);
