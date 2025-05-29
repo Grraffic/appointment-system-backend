@@ -13,12 +13,19 @@ const PORT = process.env.PORT || 5000;
 connectDB();
 
 // CORS configuration
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? 'https://appoinment-system-5687f.web.app'
-    : 'http://localhost:5173',
-  credentials: true
-}));
+app.use(
+  cors({
+    origin:
+      process.env.NODE_ENV === "production"
+        ? [
+            "https://your-frontend-app.onrender.com",
+            "https://lvappointease.onrender.com",
+          ]
+        : "http://localhost:5173",
+    credentials: true,
+  })
+);
+
 
 // Increase payload size limit
 app.use(express.json({ limit: "50mb" }));
