@@ -31,7 +31,25 @@ exports.createBooking = async (req, res) => {
     const student = await Student.findById(studentId);
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
-    } // Start a session for transaction
+    }
+
+    // Determine if it's morning or afternoon based on the schedule's startTime
+    const timeSlot = schedule.startTime.toLowerCase().includes("am")
+      ? "MORNING"
+      : "AFTERNOON";
+
+    // Create or update the status record with the timeSlot
+    const AppointmentStatus = require("../../models/adminSideSchema/dashboard/statusSchema");
+    await AppointmentStatus.findOneAndUpdate(
+      { transactionNumber: student.transactionNumber },
+      {
+        timeSlot: timeSlot,
+        status: "PENDING",
+      },
+      { upsert: true, new: true }
+    );
+
+    // Start a session for transaction
     const session = await Booking.startSession();
     let savedBooking;
 

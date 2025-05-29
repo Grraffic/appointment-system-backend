@@ -23,6 +23,7 @@ const contactFormRoute = require("./contactFormRoute");
 const documentRequestRoute = require("./appointmentRoute/documentRequestRoute");
 const attachmentRoute = require("./appointmentRoute/attachmentRoute");
 const statusRoute = require("./appointmentRoute/statusRoute");
+const dashboardRoute = require("./adminSideRoute/dashboardRoute/dashboard.route");
 
 // Auth routes
 router.use("/signup", signUpRoute);
@@ -44,6 +45,7 @@ router.use("/holidays", require("./adminSideRoute/holiday.router"));
 router.use("/events", require("./adminSideRoute/event.router"));
 router.use("/status", require("./appointmentRoute/statusRoute"));
 router.use("/feedback", require("./appointmentRoute/feedbackRoute"));
+router.use("/dashboard", dashboardRoute);
 // Add email verification route
 router.get("/verify/:token", require("./adminSideRoute/loginRoute/authRoutes"));
 module.exports = router;
