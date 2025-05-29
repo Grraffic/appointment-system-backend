@@ -20,12 +20,22 @@ const createDocumentRequest = async (req, res) => {
       purpose,
       dateOfRequest,
     });
-
     const savedRequest = await newRequest.save();
 
     // Get student details for notification
     const student = await Student.findById(studentId);
+
     if (student) {
+      // Create a status record for the new request
+      const AppointmentStatus = require("../../models/adminSideSchema/dashboard/statusSchema");
+      const newStatus = new AppointmentStatus({
+        transactionNumber: savedRequest._id,
+        emailAddress: student.emailAddress,
+        dateOfRequest: dateOfRequest,
+        status: "PENDING", // This will automatically be set due to the schema default
+      });
+      await newStatus.save();
+
       try {
         await sendDocumentRequestUpdate(student.emailAddress, {
           name: `${student.firstName} ${student.surname}`,
@@ -123,7 +133,7 @@ const getDocumentRequestsWithDetails = async (req, res) => {
         acc[booking.studentId.toString()] = {
           date: booking.scheduleId.date,
           startTime: booking.scheduleId.startTime,
-          endTime: booking.scheduleId.endTime
+          endTime: booking.scheduleId.endTime,
         };
       }
       return acc;
@@ -175,16 +185,16 @@ const getDocumentRequestsWithDetails = async (req, res) => {
             date: req.dateOfRequest
               ? req.dateOfRequest.toISOString().split("T")[0]
               : "N/A",
-            timeSlot: bookingInfo 
-              ? `${bookingInfo.startTime} - ${bookingInfo.endTime}` 
+            timeSlot: bookingInfo
+              ? `${bookingInfo.startTime} - ${bookingInfo.endTime}`
               : "Not scheduled",
-            appointmentDate: bookingInfo 
-              ? new Date(bookingInfo.date).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                }) 
-              : "Not scheduled"
+            appointmentDate: bookingInfo
+              ? new Date(bookingInfo.date).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })
+              : "Not scheduled",
           };
         } catch (error) {
           console.error("Error processing request:", error);
@@ -250,7 +260,7 @@ const updateDocumentRequest = async (req, res) => {
 const deleteDocumentRequest = async (req, res) => {
   try {
     const { transactionNumber } = req.params;
-    
+
     // Find the student by transaction number
     const student = await Student.findOne({ transactionNumber });
     if (!student) {
@@ -258,7 +268,9 @@ const deleteDocumentRequest = async (req, res) => {
     }
 
     // Find and delete the document request
-    const deleted = await DocumentRequest.findOneAndDelete({ student: student._id });
+    const deleted = await DocumentRequest.findOneAndDelete({
+      student: student._id,
+    });
     if (!deleted) {
       return res.status(404).json({ message: "Document request not found" });
     }
