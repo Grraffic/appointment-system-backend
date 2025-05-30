@@ -15,11 +15,10 @@ connectDB();
 // CORS configuration
 app.use(
   cors({
-    origin: process.env.CORS_ORIGINS
-      ? process.env.CORS_ORIGINS.split(",")
-      : ["http://localhost:5173"],
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    origin: [
+      "http://localhost:5173",
+      "https://appointment-system-hy6r.onrender.com",
+    ],
     credentials: true,
   })
 );
@@ -45,11 +44,6 @@ app.use((req, res, next) => {
 
 // API Routes
 app.use("/api", routes);
-
-// Test endpoint
-app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", message: "Server is running" });
-});
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
