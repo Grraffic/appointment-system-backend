@@ -15,7 +15,10 @@ connectDB();
 // CORS configuration
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: [
+      "http://localhost:5173",
+      "https://appointment-system-hy6r.onrender.com",
+    ],
     credentials: true,
   })
 );
