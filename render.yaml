@@ -15,7 +15,7 @@ services:
   - type: static
     name: appointment-system
     buildCommand: npm run build
-    publishDirectory: dist
+    publishDirectory: build
     envVars:
       - key: VITE_API_URL
-        value: https://appointease-backend.onrender.com
+        value: https://appointment-system-backend-n8dk.onrender.com
