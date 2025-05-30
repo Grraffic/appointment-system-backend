@@ -1,15 +1,3 @@
-// const express = require("express");
-// const router = express.Router();
-
-// // Mounts contactForm route under /contact
-// router.use("/contact", require("./contactForm"));
-
-// // Mounts schedule route under /schedule
-// // router.use("/schedule", require("./adminSide/schedule"));
-
-// module.exports = router;
-
-// routes/index.js
 const express = require("express");
 const router = express.Router();
 
