@@ -3,6 +3,9 @@ const Student = require("../../models/appointmentSchema/studentSchema");
 const Attachment = require("../../models/appointmentSchema/attachmentSchema");
 const Booking = require("../../models/appointmentSchema/bookingSchema");
 const { sendDocumentRequestUpdate } = require("../../util/emailService");
+const {
+  createNotificationInternal,
+} = require("../../controllers/adminSideController/dashboardController/notification.controller");
 
 // Create Document Request
 const createDocumentRequest = async (req, res) => {
@@ -274,6 +277,34 @@ const deleteDocumentRequest = async (req, res) => {
     if (!deleted) {
       return res.status(404).json({ message: "Document request not found" });
     }
+
+    // Create internal notification
+  try {
+    const userName = req.user ? req.user.name : "Admin";
+    console.log("Creating notification with data:", {
+      type: "user-action",
+      userName: userName,
+      action: "deleted the appointment of",
+      reference: transactionNumber,
+      status: "DELETED",
+      details: `Appointment with transaction number ${transactionNumber} has been deleted`,
+    });
+
+    const notification = await createNotificationInternal({
+      type: "user-action",
+      userName: userName,
+      action: "deleted the appointment of",
+      reference: transactionNumber,
+      status: "DELETED",
+      details: `Appointment with transaction number ${transactionNumber} has been deleted`,
+      read: false,
+    });
+
+    console.log("Notification created:", notification);
+  } catch (notifError) {
+    console.error("Error creating notification:", notifError);
+    // Continue with the response even if notification creation fails
+  }
 
     res.status(200).json({ message: "Document request deleted successfully" });
   } catch (error) {

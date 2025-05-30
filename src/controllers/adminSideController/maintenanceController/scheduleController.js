@@ -114,7 +114,20 @@ exports.deleteSchedule = async (req, res) => {
       return res.status(404).json({ message: "Schedule not found" });
     }
 
-    res.status(200).json({ message: "Schedule deleted successfully" });
+    // Create notification
+    const notificationData = {
+      type: "system",
+      action: "schedule_deleted",
+      reference: deletedSchedule._id,
+      details: `Schedule for ${deletedSchedule.date.toDateString()} was deleted`,
+    };
+
+    await createNotificationInternal(notificationData);
+
+    res.status(200).json({ 
+      message: "Schedule deleted successfully",
+      notification: true
+    });
   } catch (err) {
     res.status(500).json({
       message: "Failed to delete schedule",

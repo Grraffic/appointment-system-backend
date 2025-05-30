@@ -1,7 +1,10 @@
 const AppointmentStatus = require("../../models/adminSideSchema/dashboard/statusSchema");
 const { sendAppointmentStatusUpdate } = require("../../util/emailService");
+const {
+  createNotificationInternal,
+} = require("../../controllers/adminSideController/dashboardController/notification.controller");
 
-// Get all appointment stat uses
+// Get all appointment statuses
 exports.getAllStatuses = async (req, res) => {
   try {
     const statuses = await AppointmentStatus.find().sort({ dateOfRequest: -1 });
@@ -18,7 +21,6 @@ exports.updateStatus = async (req, res) => {
     const { transactionNumber } = req.params;
     let { status, emailAddress, name, appointmentDate, timeSlot } = req.body;
 
-    // Debug logs
     console.log("Received status update request:", {
       transactionNumber,
       status,
@@ -28,22 +30,21 @@ exports.updateStatus = async (req, res) => {
       timeSlot,
     });
 
-    // Normalize status to uppercase
+    // Normalize status
     status = status ? status.toUpperCase() : "PENDING";
     console.log("Normalized status:", status);
 
-    // Validate status
+    // Validate
     if (!["PENDING", "APPROVED", "REJECTED", "COMPLETED"].includes(status)) {
       return res.status(400).json({ message: "Invalid status value" });
     }
 
-    // Find the appointment status and update it
+    // Find and update or create
     let appointmentStatus = await AppointmentStatus.findOne({
       transactionNumber,
     });
 
     if (!appointmentStatus) {
-      // If status doesn't exist, create it with the provided status or PENDING as default
       appointmentStatus = new AppointmentStatus({
         transactionNumber,
         status,
@@ -53,7 +54,6 @@ exports.updateStatus = async (req, res) => {
         timeSlot,
       });
     } else {
-      // Update existing status - also update other fields if provided
       appointmentStatus.status = status;
       if (emailAddress) appointmentStatus.emailAddress = emailAddress;
       if (appointmentDate) appointmentStatus.appointmentDate = appointmentDate;
@@ -62,7 +62,26 @@ exports.updateStatus = async (req, res) => {
 
     await appointmentStatus.save();
 
-    // Send email notification for APPROVED or REJECTED status
+    // Create internal notification
+    try {
+      const userName = req.user ? req.user.name : "Admin";
+      await createNotificationInternal({
+        type: "user-action",
+        userName: userName,
+        action: "updated the status appointment of",
+        reference: transactionNumber,
+        status: status,
+        details: `Appointment status changed to ${status.replace(
+          /<[^>]*>/g,
+          ""
+        )}`,
+        read: false,
+      });
+    } catch (notifError) {
+      console.error("Failed to create notification:", notifError);
+    }
+
+    // Send email if needed
     if (
       (status === "APPROVED" || status === "REJECTED") &&
       appointmentStatus.emailAddress
@@ -90,7 +109,6 @@ exports.updateStatus = async (req, res) => {
           transactionNumber,
           status,
         });
-        // Continue with the response even if email fails
       }
     } else if (
       (status === "APPROVED" || status === "REJECTED") &&
@@ -108,7 +126,7 @@ exports.updateStatus = async (req, res) => {
   }
 };
 
-// Delete status
+// Delete appointment status
 exports.deleteStatus = async (req, res) => {
   try {
     const { transactionNumber } = req.params;
@@ -126,9 +144,3 @@ exports.deleteStatus = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
-// module.exports = {
-//   updateStatus,
-//   getAllStatuses,
-//   deleteStatus,
-// };

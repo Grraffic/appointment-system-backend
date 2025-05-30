@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 
 const authMiddleware = (req, res, next) => {
-  console.log("Auth headers:", req.headers.authorization);
+  // console.log("Auth headers:", req.headers.authorization);
 
   if (!req.headers.authorization) {
     return res.status(401).json({ message: "No authorization header found" });
@@ -10,11 +10,9 @@ const authMiddleware = (req, res, next) => {
   const parts = req.headers.authorization.split(" ");
 
   if (parts.length !== 2 || parts[0] !== "Bearer") {
-    return res
-      .status(401)
-      .json({
-        message: "Authorization header must be in the format: Bearer <token>",
-      });
+    return res.status(401).json({
+      message: "Authorization header must be in the format: Bearer <token>",
+    });
   }
 
   const token = parts[1];

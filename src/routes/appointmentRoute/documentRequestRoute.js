@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const authMiddleware = require("../../middleware/authMiddleware");
 const {
   createDocumentRequest,
   getDocumentRequests,
@@ -10,6 +11,11 @@ const {
   getDocumentRequestsWithDetails,
 } = require("../../controllers/appointmentController/documentRequest.controller");
 
+router.delete(
+  "/docs/:transactionNumber",
+  authMiddleware,
+  deleteDocumentRequest
+);
 router.post("/docs", createDocumentRequest);
 router.get("/docs", getDocumentRequests);
 router.get("/docs/:id", getDocumentRequestById);

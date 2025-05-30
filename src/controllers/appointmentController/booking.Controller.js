@@ -4,11 +4,17 @@ const Schedule = require("../../models/adminSideSchema/maintenanceSchema/schedul
 const Student = require("../../models/appointmentSchema/studentSchema");
 const { sendAppointmentConfirmation } = require("../../util/emailService");
 
+const {
+  createNotificationInternal,
+} = require("../../controllers/adminSideController/dashboardController/notification.controller");
+
 // @desc    Create a new booking
 // @route   POST /api/bookings
 exports.createBooking = async (req, res) => {
   try {
-    const { studentId, scheduleId } = req.body; // Check if schedule exists and is available
+    const { studentId, scheduleId } = req.body;
+
+    // Check if schedule exists and is available
     const schedule = await Schedule.findById(scheduleId);
     if (!schedule) {
       return res.status(404).json({ message: "Schedule not found" });
@@ -49,6 +55,15 @@ exports.createBooking = async (req, res) => {
       { upsert: true, new: true }
     );
 
+    // Format date and time for email
+    const appointmentDate = new Date(schedule.date);
+    const formattedDate = appointmentDate.toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+
     // Start a session for transaction
     const session = await Booking.startSession();
     let savedBooking;
@@ -69,6 +84,28 @@ exports.createBooking = async (req, res) => {
         // Create new booking
         const newBooking = new Booking({ studentId, scheduleId });
         savedBooking = await newBooking.save({ session });
+
+        // Create notification for new appointment
+        try {
+          await createNotificationInternal({
+            type: "system",
+            action: "New appointment has been submitted!",
+            reference: student.transactionNumber,
+            details: `${student.firstName.replace(
+              /<[^>]*>/g,
+              ""
+            )} ${student.surname.replace(
+              /<[^>]*>/g,
+              ""
+            )} has booked an appointment for ${formattedDate.replace(
+              /<[^>]*>/g,
+              ""
+            )} at ${schedule.startTime.replace(/<[^>]*>/g, "")}`,
+            read: false,
+          });
+        } catch (notifError) {
+          console.error("Failed to create notification:", notifError);
+        }
       });
     } finally {
       await session.endSession();
@@ -76,15 +113,6 @@ exports.createBooking = async (req, res) => {
 
     // Get the updated schedule for response
     const updatedSchedule = await Schedule.findById(scheduleId);
-
-    // Format date and time for email
-    const appointmentDate = new Date(schedule.date);
-    const formattedDate = appointmentDate.toLocaleDateString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
 
     // Send confirmation email
     try {
@@ -99,6 +127,7 @@ exports.createBooking = async (req, res) => {
       console.error("Failed to send confirmation email:", emailError);
       // Continue with booking success response even if email fails
     }
+
     res.status(201).json({
       message:
         "Booking created successfully. A confirmation email has been sent.",
