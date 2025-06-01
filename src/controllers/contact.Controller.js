@@ -18,15 +18,12 @@ const submitContactForm = async (req, res) => {
 
     // Create and save contact form entry
     const contact = new ContactForm({ name, email, subject, message });
-    await contact.save();
-
-    // Send email notifications
-    try {
-      await sendContactNotification({ name, email, subject, message });
-    } catch (emailError) {
-      console.error("Error sending notifications:", emailError);
-      // We don't return here as the form submission was successful
-    }
+    await contact.save(); // Send email notifications asynchronously without waiting
+    sendContactNotification({ name, email, subject, message }).catch(
+      (emailError) => {
+        console.error("Error sending notifications:", emailError);
+      }
+    );
 
     res.status(201).json({
       message:
