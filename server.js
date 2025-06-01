@@ -17,6 +17,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
+      "http://localhost:4173",
       "https://appointment-system-hy6r.onrender.com",
       "https://appointment-system.vercel.app",
       "https://appointment-system-frontend.vercel.app",
