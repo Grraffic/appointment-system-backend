@@ -21,6 +21,8 @@ app.use(
       "https://appointment-system-hy6r.onrender.com",
       "https://appointment-system-fe.vercel.app",
     ],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Accept", "Authorization"],
     credentials: true,
   })
 );
