@@ -29,4 +29,4 @@ services:  - type: web
     publishDirectory: build
     envVars:
       - key: VITE_API_URL
-        value: https://appointment-system-backend-1.onrender.com
+        value: https://appointment-system-backend.onrender.com
