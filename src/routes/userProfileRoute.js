@@ -8,7 +8,7 @@ const authMiddleware = require("../middleware/authMiddleware");
 // Configure multer for profile picture uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadDir = "/api/uploads/profile-pictures";
+    const uploadDir = path.join(__dirname, "../../uploads/profile-pictures");
     // Create directory if it doesn't exist
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
@@ -39,7 +39,6 @@ const upload = multer({
   },
 });
 
-// Import controller functions (we'll create these next)
 const {
   uploadProfilePicture,
   getUserProfile,
@@ -55,7 +54,10 @@ router.post(
   uploadProfilePicture
 );
 router.delete("/:userId/profile-picture", authMiddleware, deleteProfilePicture);
-
+router.get("/ping", (req, res) => {
+  console.log("SUCCESS: Reached the /api/profile/ping route!");
+  res.status(200).send("Pong! The profile router is working!");
+});
 // User profile routes
 router.get("/:userId", authMiddleware, getUserProfile);
 router.put("/:userId", authMiddleware, updateUserProfile);
