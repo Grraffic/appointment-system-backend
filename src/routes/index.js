@@ -6,15 +6,17 @@ const authRoutes = require("./adminSideRoute/loginRoute/authRoutes");
 const signUpRoute = require("./adminSideRoute/loginRoute/signUpRoute");
 const signInRoute = require("./adminSideRoute/loginRoute/signInRoute");
 const forgotPasswordRoute = require("./adminSideRoute/loginRoute/forgotPasswordRoute");
-const userProfileRoute = require("./userProfileRoute"); // This is the router for profile actions
+const userProfileRoute = require("./userProfileRoute");
 const contactFormRoute = require("./contactFormRoute");
 const documentRequestRoute = require("./appointmentRoute/documentRequestRoute");
 const attachmentRoute = require("./appointmentRoute/attachmentRoute");
 const statusRoute = require("./appointmentRoute/statusRoute");
 const dashboardRoute = require("./adminSideRoute/dashboardRoute/dashboard.route");
 const notificationRoute = require("./adminSideRoute/dashboardRoute/notification.route");
+const announcementRoute = require("./adminSideRoute/maintenanceRoute/announcementRoute");
 
 // Auth routes
+router.use("/announcements", announcementRoute);
 router.use("/signup", signUpRoute);
 router.use("/signin", signInRoute);
 router.use("/forgot-password", forgotPasswordRoute);
