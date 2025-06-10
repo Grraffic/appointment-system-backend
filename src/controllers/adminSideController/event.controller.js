@@ -19,15 +19,7 @@ const getEventByIdMiddleware = async (req, res, next) => {
 // GET all events (can add query params for date range later)
 const getAllEvents = async (req, res) => {
     try {
-        // Example: Fetch events for a specific month if query params are provided
-        // const { year, month } = req.query;
-        // let query = {};
-        // if (year && month) {
-        //   const startDate = new Date(year, month - 1, 1);
-        //   const endDate = new Date(year, month, 0, 23, 59, 59, 999); // End of the month
-        //   query = { startDate: { $lte: endDate }, endDate: { $gte: startDate } };
-        // }
-        // const events = await Event.find(query).sort({ startDate: 1 });
+       
 
         const events = await Event.find().sort({ startDate: 1 });
         res.status(200).json(events);

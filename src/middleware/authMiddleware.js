@@ -1,7 +1,6 @@
 const jwt = require("jsonwebtoken");
 
 const authMiddleware = (req, res, next) => {
-  // console.log("Auth headers:", req.headers.authorization);
 
   if (!req.headers.authorization) {
     return res.status(401).json({ message: "No authorization header found" });

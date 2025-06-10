@@ -197,7 +197,6 @@ exports.deleteImageByPublicId = async (req, res) => {
     // Delete the image from Cloudinary
     const result = await cloudinary.uploader.destroy(publicId);
 
-    console.log("🗑️ Cloudinary deletion result:", result);
 
     if (result.result === "ok") {
       res.status(200).json({
