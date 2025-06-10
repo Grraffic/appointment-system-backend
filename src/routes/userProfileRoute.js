@@ -2,10 +2,11 @@ const express = require("express");
 const router = express.Router();
 const multer = require("multer");
 const authMiddleware = require("../middleware/authMiddleware");
+const { profilePictureStorage } = require("../config/cloudinary");
 
-// Simple memory storage for Base64 conversion
+// Configure multer with Cloudinary storage
 const upload = multer({
-  storage: multer.memoryStorage(),
+  storage: profilePictureStorage,
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith("image/")) {
       cb(null, true);
@@ -14,7 +15,7 @@ const upload = multer({
     }
   },
   limits: {
-    fileSize: 2 * 1024 * 1024, // 2MB limit (smaller for Base64)
+    fileSize: 5 * 1024 * 1024, // 5MB limit
   },
 });
 

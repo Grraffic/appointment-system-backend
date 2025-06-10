@@ -19,6 +19,12 @@ exports.uploadProfilePicture = async (req, res) => {
     let profilePictureUrl;
     let publicId;
 
+    console.log("🔍 Debugging file upload:");
+    console.log("- req.file.path:", req.file.path);
+    console.log("- req.file.filename:", req.file.filename);
+    console.log("- req.file.buffer exists:", !!req.file.buffer);
+    console.log("- req.file.mimetype:", req.file.mimetype);
+
     // Check if we're using Cloudinary or fallback
     if (req.file.path && req.file.path.includes("cloudinary.com")) {
       // Cloudinary upload
