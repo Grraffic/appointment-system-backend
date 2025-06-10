@@ -201,7 +201,7 @@ exports.sendAppointmentConfirmation = async (email, appointmentDetails) => {
 // Send appointment status update email
 exports.sendAppointmentStatusUpdate = async (
   emailAddress,
-  { status, name, transactionNumber, appointmentDate, timeSlot }
+  { status, name, transactionNumber, appointmentDate, timeSlot, adminName }
 ) => {
   try {
     // Debug logs
@@ -228,7 +228,9 @@ exports.sendAppointmentStatusUpdate = async (
       messageContent = `
         <h2>Document Request Appointment Approved</h2>
         <p>Dear ${name},</p>
-        <p>Your document request appointment (Transaction #: ${transactionNumber}) has been <strong style="color: #299057;">APPROVED</strong>.</p>
+        <p>Your document request appointment (Transaction #: ${transactionNumber}) has been <strong style="color: #299057;">APPROVED</strong> by ${
+        adminName || "our staff"
+      }.</p>
         <p>Appointment Details:</p>
         <ul>
           <li>Date: ${appointmentDate}</li>
@@ -242,7 +244,9 @@ exports.sendAppointmentStatusUpdate = async (
       messageContent = `
         <h2>Document Request Appointment Update</h2>
         <p>Dear ${name},</p>
-        <p>We regret to inform you that your document request appointment (Transaction #: ${transactionNumber}) has been <strong style="color: #D52121;">REJECTED</strong>.</p>
+        <p>We regret to inform you that your document request appointment (Transaction #: ${transactionNumber}) has been <strong style="color: #D52121;">REJECTED</strong> by ${
+        adminName || "our staff"
+      }.</p>
         <p>If you have any questions about this decision or would like to submit a new request, please contact our office.</p>
         <p>Thank you for your understanding.</p>
       `;
@@ -251,7 +255,9 @@ exports.sendAppointmentStatusUpdate = async (
       messageContent = `
         <h2>Document Request Completed</h2>
         <p>Dear ${name},</p>
-        <p>We are pleased to inform you that your document request (Transaction #: ${transactionNumber}) has been <strong style="color: #354CCE;">COMPLETED</strong>.</p>
+        <p>We are pleased to inform you that your document request (Transaction #: ${transactionNumber}) has been <strong style="color: #354CCE;">COMPLETED</strong> by ${
+        adminName || "our staff"
+      }.</p>
         <p>Your requested documents are now ready for pickup. Please visit our office during business hours to collect them.</p>
         <p>Remember to bring:</p>
         <ul>

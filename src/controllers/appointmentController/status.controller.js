@@ -19,7 +19,8 @@ exports.getAllStatuses = async (req, res) => {
 exports.updateStatus = async (req, res) => {
   try {
     const { transactionNumber } = req.params;
-    let { status, emailAddress, name, appointmentDate, timeSlot } = req.body;
+    let { status, emailAddress, name, appointmentDate, timeSlot, adminName } =
+      req.body;
 
     console.log("Received status update request:", {
       transactionNumber,
@@ -28,6 +29,7 @@ exports.updateStatus = async (req, res) => {
       name,
       appointmentDate,
       timeSlot,
+      adminName,
     });
 
     // Normalize status
@@ -64,8 +66,12 @@ exports.updateStatus = async (req, res) => {
 
     // Create internal notification
     try {
-      const userName = req.user ? req.user.name : "Admin";
-      await createNotificationInternal({
+      const userName = adminName || req.user?.name || "Admin";
+      console.log("Creating notification with userName:", userName);
+      console.log("adminName from request:", adminName);
+      console.log("req.user:", req.user);
+
+      const notificationData = {
         type: "user-action",
         userName: userName,
         action: "updated the status appointment of",
@@ -76,7 +82,10 @@ exports.updateStatus = async (req, res) => {
           ""
         )}`,
         read: false,
-      });
+      };
+
+      console.log("Notification data being created:", notificationData);
+      await createNotificationInternal(notificationData);
     } catch (notifError) {
       console.error("Failed to create notification:", notifError);
     }
@@ -100,6 +109,7 @@ exports.updateStatus = async (req, res) => {
               ? new Date(appointmentStatus.appointmentDate).toLocaleDateString()
               : "Not set",
             timeSlot: appointmentStatus.timeSlot || "Not set",
+            adminName: adminName || "Admin", // Include admin name in email
           });
           console.log(`Status update email sent for ${transactionNumber}`);
         }
