@@ -29,15 +29,30 @@ const createDocumentRequest = async (req, res) => {
     const student = await Student.findById(studentId);
 
     if (student) {
-      // Create a status record for the new request
+      // Create a status record for the new request using student's transactionNumber
       const AppointmentStatus = require("../../models/adminSideSchema/dashboard/statusSchema");
-      const newStatus = new AppointmentStatus({
-        transactionNumber: savedRequest._id,
-        emailAddress: student.emailAddress,
-        dateOfRequest: dateOfRequest,
-        status: "PENDING", // This will automatically be set due to the schema default
+
+      // Check if status record already exists for this student
+      const existingStatus = await AppointmentStatus.findOne({
+        transactionNumber: student.transactionNumber,
       });
-      await newStatus.save();
+
+      if (!existingStatus) {
+        const newStatus = new AppointmentStatus({
+          transactionNumber: student.transactionNumber, // Use student's TR number, not document request ID
+          emailAddress: student.emailAddress,
+          dateOfRequest: dateOfRequest,
+          status: "PENDING", // This will automatically be set due to the schema default
+        });
+        await newStatus.save();
+        console.log(
+          `Created status record for student ${student.transactionNumber}`
+        );
+      } else {
+        console.log(
+          `Status record already exists for student ${student.transactionNumber}`
+        );
+      }
 
       try {
         await sendDocumentRequestUpdate(student.emailAddress, {
@@ -279,32 +294,32 @@ const deleteDocumentRequest = async (req, res) => {
     }
 
     // Create internal notification
-  try {
-    const userName = req.user ? req.user.name : "Admin";
-    console.log("Creating notification with data:", {
-      type: "user-action",
-      userName: userName,
-      action: "deleted the appointment of",
-      reference: transactionNumber,
-      status: "DELETED",
-      details: `Appointment with transaction number ${transactionNumber} has been deleted`,
-    });
+    try {
+      const userName = req.user ? req.user.name : "Admin";
+      console.log("Creating notification with data:", {
+        type: "user-action",
+        userName: userName,
+        action: "deleted the appointment of",
+        reference: transactionNumber,
+        status: "DELETED",
+        details: `Appointment with transaction number ${transactionNumber} has been deleted`,
+      });
 
-    const notification = await createNotificationInternal({
-      type: "user-action",
-      userName: userName,
-      action: "deleted the appointment of",
-      reference: transactionNumber,
-      status: "DELETED",
-      details: `Appointment with transaction number ${transactionNumber} has been deleted`,
-      read: false,
-    });
+      const notification = await createNotificationInternal({
+        type: "user-action",
+        userName: userName,
+        action: "deleted the appointment of",
+        reference: transactionNumber,
+        status: "DELETED",
+        details: `Appointment with transaction number ${transactionNumber} has been deleted`,
+        read: false,
+      });
 
-    console.log("Notification created:", notification);
-  } catch (notifError) {
-    console.error("Error creating notification:", notifError);
-    // Continue with the response even if notification creation fails
-  }
+      console.log("Notification created:", notification);
+    } catch (notifError) {
+      console.error("Error creating notification:", notifError);
+      // Continue with the response even if notification creation fails
+    }
 
     res.status(200).json({ message: "Document request deleted successfully" });
   } catch (error) {

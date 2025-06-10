@@ -27,36 +27,35 @@ exports.createBooking = async (req, res) => {
         .json({ message: "No slots available for this schedule" });
     }
 
-    // Check if slot is already booked by this student
-    const existing = await Booking.findOne({ studentId, scheduleId });
-    if (existing) {
-      return res.status(400).json({ message: "You already booked this slot" });
-    }
-
     // Get student details for email notification
     const student = await Student.findById(studentId);
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
     }
 
+    // Check if slot is already booked by this student
+    const existing = await Booking.findOne({ studentId, scheduleId });
+    if (existing) {
+      return res.status(400).json({ message: "You already booked this slot" });
+    }
+
+    // IMPORTANT: Check if status record already exists to prevent duplicates
+    const AppointmentStatus = require("../../models/adminSideSchema/dashboard/statusSchema");
+    const existingStatus = await AppointmentStatus.findOne({
+      transactionNumber: student.transactionNumber,
+    });
+
+    if (existingStatus) {
+      return res.status(400).json({
+        message:
+          "An appointment request already exists for this transaction number",
+      });
+    }
+
     // Determine if it's morning or afternoon based on the schedule's startTime
     const timeSlot = schedule.startTime.toLowerCase().includes("am")
       ? "MORNING"
       : "AFTERNOON";
-
-    // Create or update the status record with the timeSlot and appointmentDate
-    const AppointmentStatus = require("../../models/adminSideSchema/dashboard/statusSchema");
-    await AppointmentStatus.findOneAndUpdate(
-      { transactionNumber: student.transactionNumber },
-      {
-        timeSlot: timeSlot,
-        status: "PENDING",
-        appointmentDate: schedule.date, // Set the appointment date from the schedule
-        emailAddress: student.emailAddress, // Also set email address
-        dateOfRequest: new Date(), // Set when the request was made
-      },
-      { upsert: true, new: true }
-    );
 
     // Format date and time for email
     const appointmentDate = new Date(schedule.date);
@@ -87,6 +86,21 @@ exports.createBooking = async (req, res) => {
         // Create new booking
         const newBooking = new Booking({ studentId, scheduleId });
         savedBooking = await newBooking.save({ session });
+
+        // Create the status record ONLY after booking is successfully created
+        await AppointmentStatus.create(
+          [
+            {
+              transactionNumber: student.transactionNumber,
+              timeSlot: timeSlot,
+              status: "PENDING",
+              appointmentDate: schedule.date,
+              emailAddress: student.emailAddress,
+              dateOfRequest: new Date(),
+            },
+          ],
+          { session }
+        );
 
         // Create notification for new appointment
         try {

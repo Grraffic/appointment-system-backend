@@ -109,7 +109,106 @@ const debugAppointments = async (req, res) => {
   }
 };
 
+// Cleanup duplicates endpoint
+const cleanupDuplicates = async (req, res) => {
+  try {
+    console.log("Starting duplicate cleanup...");
+
+    // Find all status records
+    const allStatuses = await Status.find({}).sort({ dateOfRequest: -1 });
+    console.log(`Found ${allStatuses.length} total status records`);
+
+    let duplicatesRemoved = 0;
+    let orphanedRemoved = 0;
+    const duplicateInfo = [];
+    const orphanedInfo = [];
+
+    // First, remove orphaned records with ObjectId transactionNumbers (from document requests)
+    for (const status of allStatuses) {
+      const transactionNumber = status.transactionNumber;
+
+      // Check if transactionNumber looks like an ObjectId (24 hex characters)
+      if (
+        transactionNumber &&
+        transactionNumber.length === 24 &&
+        /^[0-9a-fA-F]{24}$/.test(transactionNumber)
+      ) {
+        console.log(
+          `Found orphaned ObjectId transaction: ${transactionNumber}`
+        );
+        orphanedInfo.push({
+          id: status._id.toString(),
+          transactionNumber: transactionNumber,
+          emailAddress: status.emailAddress,
+          dateOfRequest: status.dateOfRequest,
+        });
+
+        await Status.findByIdAndDelete(status._id);
+        orphanedRemoved++;
+      }
+    }
+
+    // Get remaining status records after orphan cleanup
+    const remainingStatuses = await Status.find({}).sort({ dateOfRequest: -1 });
+
+    // Group remaining records by transactionNumber
+    const groupedByTransaction = {};
+    remainingStatuses.forEach((status) => {
+      if (!groupedByTransaction[status.transactionNumber]) {
+        groupedByTransaction[status.transactionNumber] = [];
+      }
+      groupedByTransaction[status.transactionNumber].push(status);
+    });
+
+    // Find duplicates and remove older ones
+    for (const [transactionNumber, statuses] of Object.entries(
+      groupedByTransaction
+    )) {
+      if (statuses.length > 1) {
+        console.log(
+          `Found ${statuses.length} duplicates for transaction ${transactionNumber}`
+        );
+
+        // Keep the most recent one (first in sorted array)
+        const toKeep = statuses[0];
+        const toRemove = statuses.slice(1);
+
+        duplicateInfo.push({
+          transactionNumber,
+          totalFound: statuses.length,
+          kept: toKeep._id.toString(),
+          removed: toRemove.map((s) => s._id.toString()),
+        });
+
+        // Remove the duplicates
+        for (const duplicate of toRemove) {
+          await Status.findByIdAndDelete(duplicate._id);
+          duplicatesRemoved++;
+        }
+      }
+    }
+
+    res.status(200).json({
+      message: "Cleanup completed",
+      totalRecordsBefore: allStatuses.length,
+      orphanedRemoved,
+      duplicatesRemoved,
+      totalRecordsAfter:
+        allStatuses.length - orphanedRemoved - duplicatesRemoved,
+      orphanedInfo,
+      duplicateInfo,
+    });
+  } catch (error) {
+    console.error("Error during cleanup:", error);
+    res.status(500).json({
+      message: "Error during cleanup",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   getDashboardStats,
   debugAppointments,
+  cleanupDuplicates,
 };
