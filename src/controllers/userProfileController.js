@@ -16,31 +16,81 @@ exports.uploadProfilePicture = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Delete old profile picture from Cloudinary if it exists
-    if (user.profilePicture && user.cloudinaryPublicId) {
+    let profilePictureUrl;
+    let publicId;
+
+    // Check if we're using Cloudinary or fallback
+    if (req.file.path && req.file.path.includes("cloudinary.com")) {
+      // Cloudinary upload
+      console.log("✅ Using Cloudinary upload");
+
+      // Delete old profile picture from Cloudinary if it exists
+      if (user.profilePicture && user.cloudinaryPublicId) {
+        try {
+          await cloudinary.uploader.destroy(user.cloudinaryPublicId);
+        } catch (error) {
+          console.error(
+            "Error deleting old profile picture from Cloudinary:",
+            error
+          );
+        }
+      }
+
+      profilePictureUrl = req.file.path;
+      publicId = req.file.filename;
+    } else {
+      // Fallback: Upload to Cloudinary manually
+      console.log("⚠️  Using manual Cloudinary upload fallback");
+
       try {
-        await cloudinary.uploader.destroy(user.cloudinaryPublicId);
-      } catch (error) {
-        console.error(
-          "Error deleting old profile picture from Cloudinary:",
-          error
-        );
+        // Delete old profile picture if it exists
+        if (user.cloudinaryPublicId) {
+          await cloudinary.uploader.destroy(user.cloudinaryPublicId);
+        }
+
+        // Upload buffer to Cloudinary
+        const uploadResult = await new Promise((resolve, reject) => {
+          cloudinary.uploader
+            .upload_stream(
+              {
+                folder: "appointment-system/profile-pictures",
+                public_id: `profile-${userId}-${Date.now()}`,
+                transformation: [
+                  { width: 400, height: 400, crop: "fill", quality: "auto" },
+                ],
+              },
+              (error, result) => {
+                if (error) reject(error);
+                else resolve(result);
+              }
+            )
+            .end(req.file.buffer);
+        });
+
+        profilePictureUrl = uploadResult.secure_url;
+        publicId = uploadResult.public_id;
+      } catch (cloudinaryError) {
+        console.error("❌ Cloudinary upload failed:", cloudinaryError);
+        return res.status(500).json({
+          message: "Failed to upload to Cloudinary",
+          error: cloudinaryError.message,
+        });
       }
     }
 
     // Update user profile picture URL and public ID in database
-    user.profilePicture = req.file.path; // Cloudinary URL
-    user.cloudinaryPublicId = req.file.filename; // Cloudinary public ID
+    user.profilePicture = profilePictureUrl;
+    user.cloudinaryPublicId = publicId;
     await user.save();
 
     console.log("✅ Profile picture upload successful:");
-    console.log("- File path (Cloudinary URL):", req.file.path);
-    console.log("- Public ID:", req.file.filename);
+    console.log("- Profile Picture URL:", profilePictureUrl);
+    console.log("- Public ID:", publicId);
     console.log("- User ID:", userId);
 
     res.status(200).json({
       message: "Profile picture uploaded successfully",
-      profilePicture: req.file.path, // Return Cloudinary URL
+      profilePicture: profilePictureUrl,
     });
   } catch (error) {
     console.error("Error uploading profile picture:", error);
