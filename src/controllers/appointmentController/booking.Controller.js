@@ -41,16 +41,24 @@ exports.createBooking = async (req, res) => {
 
     // IMPORTANT: Check if status record already exists to prevent duplicates
     const AppointmentStatus = require("../../models/adminSideSchema/dashboard/statusSchema");
-    const existingStatus = await AppointmentStatus.findOne({
-      transactionNumber: student.transactionNumber,
-    });
 
-    if (existingStatus) {
-      return res.status(400).json({
-        message:
-          "An appointment request already exists for this transaction number",
-      });
-    }
+    // TEMPORARILY DISABLED: Remove duplicate check until database is confirmed clean
+    // const existingStatus = await AppointmentStatus.findOne({
+    //   transactionNumber: student.transactionNumber,
+    // });
+
+    // if (existingStatus) {
+    //   return res.status(400).json({
+    //     message:
+    //       "An appointment request already exists for this transaction number",
+    //   });
+    // }
+
+    console.log(
+      "Duplicate check temporarily disabled - allowing appointment creation"
+    );
+    console.log("Student transaction number:", student.transactionNumber);
+    console.log("Schedule ID:", scheduleId);
 
     // Determine if it's morning or afternoon based on the schedule's startTime
     const timeSlot = schedule.startTime.toLowerCase().includes("am")
