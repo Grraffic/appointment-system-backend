@@ -34,6 +34,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: null,
   },
+  cloudinaryPublicId: {
+    type: String,
+    default: null,
+  },
   role: {
     type: String,
     enum: ["admin", "staff"],

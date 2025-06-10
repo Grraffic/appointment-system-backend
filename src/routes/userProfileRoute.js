@@ -1,26 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
 const authMiddleware = require("../middleware/authMiddleware");
-
-// Configure multer for profile picture uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = path.join(__dirname, "../../uploads/profile-pictures");
-    // Create directory if it doesn't exist
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    // Generate unique filename with timestamp
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, "profile-" + uniqueSuffix + path.extname(file.originalname));
-  },
-});
+const { profilePictureStorage } = require("../config/cloudinary");
 
 // File filter for images only
 const fileFilter = (req, file, cb) => {
@@ -32,7 +14,7 @@ const fileFilter = (req, file, cb) => {
 };
 
 const upload = multer({
-  storage: storage,
+  storage: profilePictureStorage,
   fileFilter: fileFilter,
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB limit
@@ -57,6 +39,23 @@ router.delete("/:userId/profile-picture", authMiddleware, deleteProfilePicture);
 router.get("/ping", (req, res) => {
   console.log("SUCCESS: Reached the /api/profile/ping route!");
   res.status(200).send("Pong! The profile router is working!");
+});
+
+// Debug endpoint to check Cloudinary configuration
+router.get("/debug/cloudinary", (req, res) => {
+  const config = {
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME ? "✅ Set" : "❌ Missing",
+    apiKey: process.env.CLOUDINARY_API_KEY ? "✅ Set" : "❌ Missing",
+    apiSecret: process.env.CLOUDINARY_API_SECRET ? "✅ Set" : "❌ Missing",
+    nodeEnv: process.env.NODE_ENV || "development",
+  };
+
+  console.log("🔍 Cloudinary Configuration Check:", config);
+  res.status(200).json({
+    message: "Cloudinary configuration status",
+    config: config,
+    timestamp: new Date().toISOString(),
+  });
 });
 // User profile routes
 router.get("/:userId", authMiddleware, getUserProfile);

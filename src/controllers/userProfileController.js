@@ -1,6 +1,5 @@
 const User = require("../models/adminSideSchema/loginSchema/userSchema");
-const fs = require("fs").promises;
-const path = require("path");
+const { cloudinary } = require("../config/cloudinary");
 
 // Upload profile picture
 exports.uploadProfilePicture = async (req, res) => {
@@ -17,25 +16,31 @@ exports.uploadProfilePicture = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Delete old profile picture if it exists
-    if (user.profilePicture) {
+    // Delete old profile picture from Cloudinary if it exists
+    if (user.profilePicture && user.cloudinaryPublicId) {
       try {
-        await fs.unlink(path.join(__dirname, "../../", user.profilePicture));
+        await cloudinary.uploader.destroy(user.cloudinaryPublicId);
       } catch (error) {
-        console.error("Error deleting old profile picture:", error);
+        console.error(
+          "Error deleting old profile picture from Cloudinary:",
+          error
+        );
       }
     }
 
-    // Update user profile picture path in database
-    const profilePicturePath = req.file.path.replace(/\\/g, "/"); // Convert Windows path to URL format
-    user.profilePicture = profilePicturePath;
+    // Update user profile picture URL and public ID in database
+    user.profilePicture = req.file.path; // Cloudinary URL
+    user.cloudinaryPublicId = req.file.filename; // Cloudinary public ID
     await user.save();
+
+    console.log("✅ Profile picture upload successful:");
+    console.log("- File path (Cloudinary URL):", req.file.path);
+    console.log("- Public ID:", req.file.filename);
+    console.log("- User ID:", userId);
 
     res.status(200).json({
       message: "Profile picture uploaded successfully",
-      profilePicture: `${req.protocol}://${req.get(
-        "host"
-      )}/${profilePicturePath}`,
+      profilePicture: req.file.path, // Return Cloudinary URL
     });
   } catch (error) {
     console.error("Error uploading profile picture:", error);
@@ -56,13 +61,9 @@ exports.getUserProfile = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Convert profile picture path to full URL if it exists
+    // Return user profile with Cloudinary URL (no need to modify)
     const profile = user.toObject();
-    if (profile.profilePicture) {
-      profile.profilePicture = `${req.protocol}://${req.get("host")}/${
-        profile.profilePicture
-      }`;
-    }
+    // profilePicture already contains the full Cloudinary URL
 
     res.status(200).json(profile);
   } catch (error) {
@@ -115,15 +116,18 @@ exports.deleteProfilePicture = async (req, res) => {
       return res.status(400).json({ message: "No profile picture to delete" });
     }
 
-    // Delete the file
-    try {
-      await fs.unlink(path.join(__dirname, "../../", user.profilePicture));
-    } catch (error) {
-      console.error("Error deleting profile picture file:", error);
+    // Delete the file from Cloudinary
+    if (user.cloudinaryPublicId) {
+      try {
+        await cloudinary.uploader.destroy(user.cloudinaryPublicId);
+      } catch (error) {
+        console.error("Error deleting profile picture from Cloudinary:", error);
+      }
     }
 
-    // Remove profile picture path from user document
+    // Remove profile picture path and public ID from user document
     user.profilePicture = undefined;
+    user.cloudinaryPublicId = undefined;
     await user.save();
 
     res.status(200).json({ message: "Profile picture deleted successfully" });
