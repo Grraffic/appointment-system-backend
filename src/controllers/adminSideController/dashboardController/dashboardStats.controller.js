@@ -1,30 +1,24 @@
 const Status = require("../../../models/adminSideSchema/dashboard/statusSchema");
 
-// Initialize stats object with uppercase status values to match the frontend
-const dashboardStats = {
-  APPROVED: 0,
-  PENDING: 0,
-  COMPLETED: 0,
-  REJECTED: 0,
-  total: 0,
-  morning: {
-    APPROVED: 0,
-    PENDING: 0,
-    COMPLETED: 0,
-    REJECTED: 0,
-  },
-  afternoon: {
-    APPROVED: 0,
-    PENDING: 0,
-    COMPLETED: 0,
-    REJECTED: 0,
-  },
-};
-
 const getDashboardStats = async (req, res) => {
   try {
-    // Get all statuses
+    console.log("=== DASHBOARD STATS DEBUG ===");
+
+    // SIMPLIFIED APPROACH: Get all statuses (no month filtering for now)
     const statuses = await Status.find({});
+    console.log(`Found ${statuses.length} total appointments in database`);
+
+    // Log all appointments for debugging
+    console.log(
+      "All appointments:",
+      statuses.map((s) => ({
+        transactionNumber: s.transactionNumber,
+        status: s.status,
+        timeSlot: s.timeSlot,
+        appointmentDate: s.appointmentDate,
+        dateOfRequest: s.dateOfRequest,
+      }))
+    );
 
     // Initialize counters with uppercase status values
     const stats = {
@@ -45,42 +39,43 @@ const getDashboardStats = async (req, res) => {
         COMPLETED: 0,
         REJECTED: 0,
       },
-    }; // Count statuses
+    };
+
+    // SIMPLIFIED COUNTING - Same logic for all statuses
     statuses.forEach((status) => {
-      // Keep status in uppercase to match frontend values
       const statusType = status.status || "PENDING";
-      const timeSlot = status.timeSlot?.toLowerCase() || "";
+      const timeSlot = status.timeSlot || "";
 
-      // Special handling for COMPLETED status
-      // If an appointment is COMPLETED, it means it was also APPROVED before
-      if (statusType === "COMPLETED") {
-        // Count in both COMPLETED and APPROVED
-        stats.COMPLETED++;
-        stats.APPROVED++;
-        if (timeSlot.includes("morning")) {
-          stats.morning.COMPLETED++;
-          stats.morning.APPROVED++;
-        } else if (timeSlot.includes("afternoon")) {
-          stats.afternoon.COMPLETED++;
-          stats.afternoon.APPROVED++;
-        }
-      }
-      // For other statuses, count normally
-      else if (stats.hasOwnProperty(statusType)) {
-        stats[statusType]++;
-        if (timeSlot.includes("morning")) {
-          stats.morning[statusType]++;
-        } else if (timeSlot.includes("afternoon")) {
-          stats.afternoon[statusType]++;
-        }
-      }
+      console.log(
+        `Processing: ${status.transactionNumber} | Status: ${statusType} | TimeSlot: "${timeSlot}"`
+      );
 
-      // Increment total for all valid statuses
+      // Count total for this status
       if (stats.hasOwnProperty(statusType)) {
+        stats[statusType]++;
         stats.total++;
+
+        // Determine if it's morning or afternoon
+        const isAM =
+          timeSlot.toUpperCase().includes("AM") ||
+          timeSlot.toUpperCase().includes("MORNING");
+        const isPM =
+          timeSlot.toUpperCase().includes("PM") ||
+          timeSlot.toUpperCase().includes("AFTERNOON");
+
+        if (isAM) {
+          stats.morning[statusType]++;
+          console.log(`  -> Added to MORNING ${statusType}`);
+        } else if (isPM) {
+          stats.afternoon[statusType]++;
+          console.log(`  -> Added to AFTERNOON ${statusType}`);
+        } else {
+          console.log(`  -> TimeSlot "${timeSlot}" not recognized as AM/PM`);
+        }
       }
     });
 
+    console.log("Final stats:", stats);
     res.status(200).json(stats);
   } catch (error) {
     console.error("Error getting dashboard stats:", error);
@@ -91,6 +86,30 @@ const getDashboardStats = async (req, res) => {
   }
 };
 
+// Debug endpoint to check all appointments
+const debugAppointments = async (req, res) => {
+  try {
+    const allStatuses = await Status.find({}).limit(10);
+    const debugInfo = allStatuses.map((status) => ({
+      transactionNumber: status.transactionNumber,
+      status: status.status,
+      appointmentDate: status.appointmentDate,
+      dateOfRequest: status.dateOfRequest,
+      timeSlot: status.timeSlot,
+      emailAddress: status.emailAddress,
+    }));
+
+    res.status(200).json({
+      total: await Status.countDocuments({}),
+      sample: debugInfo,
+    });
+  } catch (error) {
+    console.error("Error in debug endpoint:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   getDashboardStats,
+  debugAppointments,
 };

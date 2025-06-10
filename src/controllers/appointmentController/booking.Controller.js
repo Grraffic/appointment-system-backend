@@ -44,13 +44,16 @@ exports.createBooking = async (req, res) => {
       ? "MORNING"
       : "AFTERNOON";
 
-    // Create or update the status record with the timeSlot
+    // Create or update the status record with the timeSlot and appointmentDate
     const AppointmentStatus = require("../../models/adminSideSchema/dashboard/statusSchema");
     await AppointmentStatus.findOneAndUpdate(
       { transactionNumber: student.transactionNumber },
       {
         timeSlot: timeSlot,
         status: "PENDING",
+        appointmentDate: schedule.date, // Set the appointment date from the schedule
+        emailAddress: student.emailAddress, // Also set email address
+        dateOfRequest: new Date(), // Set when the request was made
       },
       { upsert: true, new: true }
     );
