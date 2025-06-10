@@ -17,4 +17,7 @@ router.put("/mark-all-read", notificationController.markAllAsRead);
 // Create notification (for testing purposes)
 router.post("/", notificationController.createNotification);
 
+// Create notification (alternative endpoint)
+router.post("/create", notificationController.createNotification);
+
 module.exports = router;

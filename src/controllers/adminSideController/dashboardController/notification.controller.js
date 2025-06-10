@@ -24,6 +24,32 @@ exports.getUnreadCount = async (req, res) => {
   }
 };
 
+// Create a new notification
+exports.createNotification = async (req, res) => {
+  try {
+    const { type, userName, action, reference, status, details, read } =
+      req.body;
+
+    const notification = new Notification({
+      type,
+      userName,
+      action,
+      reference,
+      status,
+      details,
+      read: read || false,
+    });
+
+    await notification.save();
+    res
+      .status(201)
+      .json({ message: "Notification created successfully", notification });
+  } catch (error) {
+    console.error("Error creating notification:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 // Mark notification as read
 exports.markAsRead = async (req, res) => {
   try {

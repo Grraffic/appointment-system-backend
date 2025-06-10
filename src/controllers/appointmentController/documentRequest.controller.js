@@ -278,6 +278,7 @@ const updateDocumentRequest = async (req, res) => {
 const deleteDocumentRequest = async (req, res) => {
   try {
     const { transactionNumber } = req.params;
+    const { adminName } = req.body; // Get admin name from request body
 
     // Find the student by transaction number
     const student = await Student.findOne({ transactionNumber });
@@ -295,14 +296,15 @@ const deleteDocumentRequest = async (req, res) => {
 
     // Create internal notification
     try {
-      const userName = req.user ? req.user.name : "Admin";
-      console.log("Creating notification with data:", {
+      const userName = adminName || req.user?.name || "Admin";
+      console.log("Creating delete notification with data:", {
         type: "user-action",
         userName: userName,
         action: "deleted the appointment of",
         reference: transactionNumber,
         status: "DELETED",
         details: `Appointment with transaction number ${transactionNumber} has been deleted`,
+        adminName: adminName,
       });
 
       const notification = await createNotificationInternal({
