@@ -24,6 +24,7 @@ const {
   getUserProfile,
   updateUserProfile,
   deleteProfilePicture,
+  deleteImageByPublicId,
 } = require("../controllers/userProfileController");
 
 // Profile picture routes
@@ -34,8 +35,10 @@ router.post(
   uploadProfilePicture
 );
 router.delete("/:userId/profile-picture", authMiddleware, deleteProfilePicture);
+
+// Admin route to delete any image by public ID
+router.delete("/admin/delete-image", authMiddleware, deleteImageByPublicId);
 router.get("/ping", (req, res) => {
-  console.log("SUCCESS: Reached the /api/profile/ping route!");
   res.status(200).send("Pong! The profile router is working!");
 });
 
@@ -48,7 +51,6 @@ router.get("/debug/cloudinary", (req, res) => {
     nodeEnv: process.env.NODE_ENV || "development",
   };
 
-  console.log("🔍 Cloudinary Configuration Check:", config);
   res.status(200).json({
     message: "Cloudinary configuration status",
     config: config,

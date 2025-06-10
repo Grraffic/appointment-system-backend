@@ -31,8 +31,6 @@ app.use(
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
-// Note: File uploads now handled by Cloudinary
-// No need for local file storage in production
 
 // Logger Middleware
 app.use((req, res, next) => {

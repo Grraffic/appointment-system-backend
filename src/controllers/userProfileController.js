@@ -19,16 +19,8 @@ exports.uploadProfilePicture = async (req, res) => {
     let profilePictureUrl;
     let publicId;
 
-    console.log("🔍 Debugging file upload:");
-    console.log("- req.file.path:", req.file.path);
-    console.log("- req.file.filename:", req.file.filename);
-    console.log("- req.file.buffer exists:", !!req.file.buffer);
-    console.log("- req.file.mimetype:", req.file.mimetype);
-
     // Check if we're using Cloudinary or fallback
     if (req.file.path && req.file.path.includes("cloudinary.com")) {
-      // Cloudinary upload
-      console.log("✅ Using Cloudinary upload");
 
       // Delete old profile picture from Cloudinary if it exists
       if (user.profilePicture && user.cloudinaryPublicId) {
@@ -88,12 +80,7 @@ exports.uploadProfilePicture = async (req, res) => {
     user.profilePicture = profilePictureUrl;
     user.cloudinaryPublicId = publicId;
     await user.save();
-
-    console.log("✅ Profile picture upload successful:");
-    console.log("- Profile Picture URL:", profilePictureUrl);
-    console.log("- Public ID:", publicId);
-    console.log("- User ID:", userId);
-
+    
     res.status(200).json({
       message: "Profile picture uploaded successfully",
       profilePicture: profilePictureUrl,
@@ -191,6 +178,47 @@ exports.deleteProfilePicture = async (req, res) => {
     console.error("Error deleting profile picture:", error);
     res.status(500).json({
       message: "Error deleting profile picture",
+      error: error.message,
+    });
+  }
+};
+
+// Delete specific image from Cloudinary by public ID (admin function)
+exports.deleteImageByPublicId = async (req, res) => {
+  try {
+    const { publicId } = req.body;
+
+    if (!publicId) {
+      return res.status(400).json({ message: "Public ID is required" });
+    }
+
+    console.log("🗑️ Attempting to delete image with public ID:", publicId);
+
+    // Delete the image from Cloudinary
+    const result = await cloudinary.uploader.destroy(publicId);
+
+    console.log("🗑️ Cloudinary deletion result:", result);
+
+    if (result.result === "ok") {
+      res.status(200).json({
+        message: "Image deleted successfully from Cloudinary",
+        result: result,
+      });
+    } else if (result.result === "not found") {
+      res.status(404).json({
+        message: "Image not found in Cloudinary",
+        result: result,
+      });
+    } else {
+      res.status(400).json({
+        message: "Failed to delete image",
+        result: result,
+      });
+    }
+  } catch (error) {
+    console.error("Error deleting image from Cloudinary:", error);
+    res.status(500).json({
+      message: "Error deleting image from Cloudinary",
       error: error.message,
     });
   }
