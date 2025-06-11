@@ -54,11 +54,11 @@ exports.createBooking = async (req, res) => {
     //   });
     // }
 
-    console.log(
-      "Duplicate check temporarily disabled - allowing appointment creation"
-    );
-    console.log("Student transaction number:", student.transactionNumber);
-    console.log("Schedule ID:", scheduleId);
+    // console.log(
+    //   "Duplicate check temporarily disabled - allowing appointment creation"
+    // );
+    // console.log("Student transaction number:", student.transactionNumber);
+    // console.log("Schedule ID:", scheduleId);
 
     // Determine if it's morning or afternoon based on the schedule's startTime
     const timeSlot = schedule.startTime.toLowerCase().includes("am")
