@@ -1,3 +1,4 @@
+
 const User = require("../../../models/adminSideSchema/loginSchema/userSchema");
 const { generateToken } = require("../../../util/generateToken");
 const bcrypt = require("bcrypt");
@@ -44,8 +45,7 @@ exports.signin = async (req, res) => {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    // Use the schema's comparePassword method
-    const isMatch = await user.comparePassword(password);
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
