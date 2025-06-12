@@ -133,15 +133,6 @@ const getDocumentRequestsWithDetails = async (req, res) => {
       .populate("student")
       .sort({ dateOfRequest: -1 });
 
-    console.log(
-      "DEBUG: Raw document requests:",
-      requests.map((req) => ({
-        id: req._id,
-        purpose: req.purpose,
-        studentId: req.student?._id,
-      }))
-    );
-
     if (!requests || !Array.isArray(requests)) {
       return res.status(200).json([]);
     }
@@ -154,32 +145,13 @@ const getDocumentRequestsWithDetails = async (req, res) => {
       .populate("scheduleId")
       .sort({ "scheduleId.date": 1 });
 
-    // Create a map of student IDs to their bookings and document requests
+    // Create a map of student IDs to their bookings
     const bookingMap = bookings.reduce((acc, booking) => {
       if (booking.studentId && booking.scheduleId) {
-        // Find the document request for this student
-        const studentRequest = requests.find(
-          (req) =>
-            req.student &&
-            req.student._id.toString() === booking.studentId.toString()
-        );
-
-        console.log("DEBUG: Processing booking:", {
-          studentId: booking.studentId,
-          bookingId: booking._id,
-          documentRequest: studentRequest
-            ? {
-                id: studentRequest._id,
-                purpose: studentRequest.purpose,
-              }
-            : null,
-        });
-
         acc[booking.studentId.toString()] = {
           date: booking.scheduleId.date,
           startTime: booking.scheduleId.startTime,
           endTime: booking.scheduleId.endTime,
-          purpose: studentRequest?.purpose || booking.purpose,
         };
       }
       return acc;
@@ -214,23 +186,6 @@ const getDocumentRequestsWithDetails = async (req, res) => {
           // Get booking info for this student
           const bookingInfo = bookingMap[req.student._id.toString()];
 
-          // Added debugging for purpose field
-          console.log("Processing document request:", {
-            id: req._id,
-            studentId: req.student._id,
-            purpose: req.purpose,
-            selectedDocuments: req.selectedDocuments,
-          });
-
-          // Debug logging for all data sources
-          console.log("DEBUG: Processing request with data:", {
-            id: req._id,
-            studentId: req.student?._id,
-            purpose: req.purpose,
-            bookingInfo: bookingInfo,
-            selectedDocuments: req.selectedDocuments,
-          });
-
           return {
             transactionNumber: req.student.transactionNumber,
             name: `${req.student.surname || ""}, ${
@@ -242,11 +197,9 @@ const getDocumentRequestsWithDetails = async (req, res) => {
             email: req.student.emailAddress || "N/A",
             attachment:
               filenames.length > 0 ? filenames.join(", ") : "No attachments",
-            // Match how request field is handled
             request: Array.isArray(req.selectedDocuments)
               ? req.selectedDocuments.join(", ")
               : "No documents selected",
-            purpose: req.purpose || "No purpose specified",
             date: req.dateOfRequest
               ? req.dateOfRequest.toISOString().split("T")[0]
               : "N/A",
