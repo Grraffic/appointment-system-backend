@@ -62,9 +62,9 @@ const attachmentStorage = new CloudinaryStorage({
     resource_type: "auto", // Automatically detect file type
     public_id: (req, file) => {
       const studentId = req.body.studentId;
-      return `attachment-${studentId}-${Date.now()}-${Math.round(
-        Math.random() * 1e9
-      )}`;
+      // Remove file extension and special characters from original filename
+      const originalName = file.originalname.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9]/g, '_');
+      return `${originalName}-${studentId}-${Date.now()}`;
     },
   },
 });
