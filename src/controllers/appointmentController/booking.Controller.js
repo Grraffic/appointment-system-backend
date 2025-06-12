@@ -96,9 +96,17 @@ exports.createBooking = async (req, res) => {
         savedBooking = await newBooking.save({ session });
 
         // Create or update the status record after booking is successfully created
+        console.log("Creating/updating status record with:", {
+          transactionNumber: student.transactionNumber,
+          timeSlot: timeSlot,
+          appointmentDate: schedule.date,
+          scheduleDate: schedule.date,
+          existingStatus: !!existingStatus,
+        });
+
         if (existingStatus) {
           // Update existing status record with appointment details
-          await AppointmentStatus.findOneAndUpdate(
+          const updatedStatus = await AppointmentStatus.findOneAndUpdate(
             { transactionNumber: student.transactionNumber },
             {
               requestType: requestType,
@@ -106,11 +114,12 @@ exports.createBooking = async (req, res) => {
               appointmentDate: schedule.date,
               emailAddress: student.emailAddress,
             },
-            { session }
+            { session, new: true }
           );
+          console.log("Updated existing status record:", updatedStatus);
         } else {
           // Create new status record
-          await AppointmentStatus.create(
+          const newStatus = await AppointmentStatus.create(
             [
               {
                 transactionNumber: student.transactionNumber,
@@ -124,6 +133,7 @@ exports.createBooking = async (req, res) => {
             ],
             { session }
           );
+          console.log("Created new status record:", newStatus[0]);
         }
 
         // Create notification for new appointment

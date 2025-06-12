@@ -152,7 +152,23 @@ const getDocumentRequestsWithDetails = async (req, res) => {
     // Get all attachments
     const attachments = await Attachment.find();
 
-    // Get all bookings with schedule info
+    // Get all appointment statuses to get appointment dates and times
+    const AppointmentStatus = require("../../models/adminSideSchema/dashboard/statusSchema");
+    const appointmentStatuses = await AppointmentStatus.find();
+
+    // Create a map of transaction numbers to appointment status info
+    const statusMap = appointmentStatuses.reduce((acc, status) => {
+      if (status.transactionNumber) {
+        acc[status.transactionNumber] = {
+          appointmentDate: status.appointmentDate,
+          timeSlot: status.timeSlot,
+          status: status.status,
+        };
+      }
+      return acc;
+    }, {});
+
+    // Get all bookings with schedule info (as fallback)
     const bookings = await Booking.find()
       .populate("scheduleId")
       .sort({ "scheduleId.date": 1 });
@@ -214,25 +230,55 @@ const getDocumentRequestsWithDetails = async (req, res) => {
             .filter((file) => file && file.filename)
             .map((file) => file.filename);
 
-          // Get booking info for this student
+          // Get appointment status info for this student
+          const statusInfo = statusMap[req.student.transactionNumber];
+          // Get booking info as fallback
           const bookingInfo = bookingMap[req.student._id.toString()];
 
-          // Added debugging for purpose field
-          console.log("Processing document request:", {
-            id: req._id,
-            studentId: req.student._id,
-            purpose: req.purpose,
-            selectedDocuments: req.selectedDocuments,
-          });
+          // Use status info first, then fallback to booking info
+          let appointmentDate = "Not scheduled";
+          let timeSlot = "Not scheduled";
 
-          // Debug logging for all data sources
-          console.log("DEBUG: Processing request with data:", {
-            id: req._id,
-            studentId: req.student?._id,
-            purpose: req.purpose,
-            bookingInfo: bookingInfo,
-            selectedDocuments: req.selectedDocuments,
-          });
+          if (statusInfo?.appointmentDate) {
+            appointmentDate = new Date(
+              statusInfo.appointmentDate
+            ).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            });
+          } else if (bookingInfo?.date) {
+            appointmentDate = new Date(bookingInfo.date).toLocaleDateString(
+              "en-US",
+              {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              }
+            );
+          }
+
+          if (statusInfo?.timeSlot) {
+            timeSlot = statusInfo.timeSlot;
+          } else if (bookingInfo?.startTime && bookingInfo?.endTime) {
+            timeSlot = `${bookingInfo.startTime} - ${bookingInfo.endTime}`;
+          }
+
+          console.log(
+            `DEBUG: Appointment data for ${req.student.transactionNumber}:`,
+            {
+              statusInfo: statusInfo,
+              bookingInfo: bookingInfo
+                ? {
+                    date: bookingInfo.date,
+                    startTime: bookingInfo.startTime,
+                    endTime: bookingInfo.endTime,
+                  }
+                : null,
+              finalAppointmentDate: appointmentDate,
+              finalTimeSlot: timeSlot,
+            }
+          );
 
           return {
             transactionNumber: req.student.transactionNumber,
@@ -253,16 +299,8 @@ const getDocumentRequestsWithDetails = async (req, res) => {
             date: req.dateOfRequest
               ? req.dateOfRequest.toISOString().split("T")[0]
               : "N/A",
-            timeSlot: bookingInfo
-              ? `${bookingInfo.startTime} - ${bookingInfo.endTime}`
-              : "Not scheduled",
-            appointmentDate: bookingInfo
-              ? new Date(bookingInfo.date).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })
-              : "Not scheduled",
+            timeSlot: timeSlot,
+            appointmentDate: appointmentDate,
           };
         } catch (error) {
           console.error("Error processing request:", error);

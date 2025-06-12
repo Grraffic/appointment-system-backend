@@ -47,7 +47,7 @@ const getDashboardStats = async (req, res) => {
       const timeSlot = status.timeSlot || "";
 
       console.log(
-        `Processing: ${status.transactionNumber} | Status: ${statusType} | TimeSlot: "${timeSlot}"`
+        `Processing: ${status.transactionNumber} | Status: ${statusType} | TimeSlot: "${timeSlot}" | AppointmentDate: ${status.appointmentDate}`
       );
 
       // Count total for this status
@@ -55,22 +55,39 @@ const getDashboardStats = async (req, res) => {
         stats[statusType]++;
         stats.total++;
 
-        // Determine if it's morning or afternoon
-        const isAM =
-          timeSlot.toUpperCase().includes("AM") ||
-          timeSlot.toUpperCase().includes("MORNING");
-        const isPM =
-          timeSlot.toUpperCase().includes("PM") ||
-          timeSlot.toUpperCase().includes("AFTERNOON");
+        // Only count time slots if we have appointment data
+        if (timeSlot && timeSlot !== "Not scheduled") {
+          // Determine if it's morning or afternoon
+          const timeSlotUpper = timeSlot.toUpperCase();
+          const isAM =
+            timeSlotUpper.includes("AM") ||
+            timeSlotUpper.includes("MORNING") ||
+            timeSlotUpper === "MORNING" ||
+            timeSlotUpper.includes("8:") ||
+            timeSlotUpper.includes("9:") ||
+            timeSlotUpper.includes("10:") ||
+            timeSlotUpper.includes("11:");
+          const isPM =
+            timeSlotUpper.includes("PM") ||
+            timeSlotUpper.includes("AFTERNOON") ||
+            timeSlotUpper === "AFTERNOON" ||
+            timeSlotUpper.includes("1:") ||
+            timeSlotUpper.includes("2:") ||
+            timeSlotUpper.includes("3:") ||
+            timeSlotUpper.includes("4:") ||
+            timeSlotUpper.includes("5:");
 
-        if (isAM) {
-          stats.morning[statusType]++;
-          console.log(`  -> Added to MORNING ${statusType}`);
-        } else if (isPM) {
-          stats.afternoon[statusType]++;
-          console.log(`  -> Added to AFTERNOON ${statusType}`);
+          if (isAM) {
+            stats.morning[statusType]++;
+            console.log(`  -> Added to MORNING ${statusType}`);
+          } else if (isPM) {
+            stats.afternoon[statusType]++;
+            console.log(`  -> Added to AFTERNOON ${statusType}`);
+          } else {
+            console.log(`  -> TimeSlot "${timeSlot}" not recognized as AM/PM`);
+          }
         } else {
-          console.log(`  -> TimeSlot "${timeSlot}" not recognized as AM/PM`);
+          console.log(`  -> No valid timeSlot for counting`);
         }
       }
     });
