@@ -29,7 +29,8 @@ const createDocumentRequest = async (req, res) => {
     const student = await Student.findById(studentId);
 
     if (student) {
-      // Create a status record for the new request using student's transactionNumber
+      // Create a basic status record for the new request using student's transactionNumber
+      // Appointment details (date/time) will be added when booking is completed
       const AppointmentStatus = require("../../models/adminSideSchema/dashboard/statusSchema");
 
       // Check if status record already exists for this student
@@ -39,14 +40,16 @@ const createDocumentRequest = async (req, res) => {
 
       if (!existingStatus) {
         const newStatus = new AppointmentStatus({
-          transactionNumber: student.transactionNumber, // Use student's TR number, not document request ID
+          transactionNumber: student.transactionNumber,
+          requestType: selectedDocuments.join(", "),
           emailAddress: student.emailAddress,
           dateOfRequest: dateOfRequest,
-          status: "PENDING", // This will automatically be set due to the schema default
+          status: "PENDING",
+          // appointmentDate and timeSlot will be set when booking is completed
         });
         await newStatus.save();
         console.log(
-          `Created status record for student ${student.transactionNumber}`
+          `Created basic status record for student ${student.transactionNumber} - appointment details will be added upon booking`
         );
       } else {
         console.log(

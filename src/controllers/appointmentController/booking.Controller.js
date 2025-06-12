@@ -33,37 +33,37 @@ exports.createBooking = async (req, res) => {
       return res.status(404).json({ message: "Student not found" });
     }
 
+    // Get document request details for the status record
+    const DocumentRequest = require("../../models/appointmentSchema/requestSchema");
+    const documentRequest = await DocumentRequest.findOne({
+      student: studentId,
+    });
+    const requestType =
+      documentRequest?.selectedDocuments?.join(", ") || "General Appointment";
+
     // Check if slot is already booked by this student
     const existing = await Booking.findOne({ studentId, scheduleId });
     if (existing) {
       return res.status(400).json({ message: "You already booked this slot" });
     }
 
-    // IMPORTANT: Check if status record already exists to prevent duplicates
+    // Check if status record already exists to prevent duplicates
     const AppointmentStatus = require("../../models/adminSideSchema/dashboard/statusSchema");
 
-    // TEMPORARILY DISABLED: Remove duplicate check until database is confirmed clean
-    // const existingStatus = await AppointmentStatus.findOne({
-    //   transactionNumber: student.transactionNumber,
-    // });
+    const existingStatus = await AppointmentStatus.findOne({
+      transactionNumber: student.transactionNumber,
+    });
 
-    // if (existingStatus) {
-    //   return res.status(400).json({
-    //     message:
-    //       "An appointment request already exists for this transaction number",
-    //   });
-    // }
+    if (existingStatus) {
+      // Update existing status record with appointment details instead of rejecting
+      console.log(
+        `Updating existing status record for ${student.transactionNumber} with appointment details`
+      );
+    }
 
-    // console.log(
-    //   "Duplicate check temporarily disabled - allowing appointment creation"
-    // );
-    // console.log("Student transaction number:", student.transactionNumber);
-    // console.log("Schedule ID:", scheduleId);
-
-    // Determine if it's morning or afternoon based on the schedule's startTime
-    const timeSlot = schedule.startTime.toLowerCase().includes("am")
-      ? "MORNING"
-      : "AFTERNOON";
+    // Use the detailed time slot from the request, or construct it from schedule
+    const timeSlot =
+      req.body.timeSlot || `${schedule.startTime} - ${schedule.endTime}`;
 
     // Format date and time for email
     const appointmentDate = new Date(schedule.date);
@@ -95,20 +95,36 @@ exports.createBooking = async (req, res) => {
         const newBooking = new Booking({ studentId, scheduleId });
         savedBooking = await newBooking.save({ session });
 
-        // Create the status record ONLY after booking is successfully created
-        await AppointmentStatus.create(
-          [
+        // Create or update the status record after booking is successfully created
+        if (existingStatus) {
+          // Update existing status record with appointment details
+          await AppointmentStatus.findOneAndUpdate(
+            { transactionNumber: student.transactionNumber },
             {
-              transactionNumber: student.transactionNumber,
+              requestType: requestType,
               timeSlot: timeSlot,
-              status: "PENDING",
               appointmentDate: schedule.date,
               emailAddress: student.emailAddress,
-              dateOfRequest: new Date(),
             },
-          ],
-          { session }
-        );
+            { session }
+          );
+        } else {
+          // Create new status record
+          await AppointmentStatus.create(
+            [
+              {
+                transactionNumber: student.transactionNumber,
+                requestType: requestType,
+                timeSlot: timeSlot,
+                status: "PENDING",
+                appointmentDate: schedule.date,
+                emailAddress: student.emailAddress,
+                dateOfRequest: new Date(),
+              },
+            ],
+            { session }
+          );
+        }
 
         // Create notification for new appointment
         try {
