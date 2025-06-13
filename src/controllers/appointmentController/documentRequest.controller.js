@@ -200,6 +200,7 @@ const getDocumentRequestsWithDetails = async (req, res) => {
             request: Array.isArray(req.selectedDocuments)
               ? req.selectedDocuments.join(", ")
               : "No documents selected",
+            purpose: req.purpose || "No purpose specified", // Add the purpose field
             date: req.dateOfRequest
               ? req.dateOfRequest.toISOString().split("T")[0]
               : "N/A",
