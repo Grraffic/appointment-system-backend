@@ -61,8 +61,44 @@ exports.createBooking = async (req, res) => {
     console.log("Schedule ID:", scheduleId);
 
     // Use the actual time slot from the request (e.g., "8:00 AM - 11:00 AM")
-    const timeSlot =
+    // ENSURE time slot always has AM/PM format for proper morning/afternoon detection
+    let timeSlot =
       req.body.timeSlot || `${schedule.startTime} - ${schedule.endTime}`;
+
+    // If timeSlot doesn't contain AM/PM, try to add it based on schedule times
+    if (
+      !timeSlot.toUpperCase().includes("AM") &&
+      !timeSlot.toUpperCase().includes("PM")
+    ) {
+      // Try to construct proper AM/PM format from schedule
+      const startTime = schedule.startTime;
+      const endTime = schedule.endTime;
+
+      // If schedule times have AM/PM, use them
+      if (
+        startTime.toUpperCase().includes("AM") ||
+        startTime.toUpperCase().includes("PM")
+      ) {
+        timeSlot = `${startTime} - ${endTime}`;
+      } else {
+        // Fallback: assume morning if hour < 12, afternoon if >= 12
+        const startHour = parseInt(startTime.split(":")[0]);
+        if (startHour < 12) {
+          timeSlot = `${startTime} AM - ${endTime} AM`;
+        } else {
+          timeSlot = `${startTime} PM - ${endTime} PM`;
+        }
+      }
+    }
+
+    console.log("Booking creation - Time slot details:", {
+      requestTimeSlot: req.body.timeSlot,
+      scheduleStartTime: schedule.startTime,
+      scheduleEndTime: schedule.endTime,
+      finalTimeSlot: timeSlot,
+      studentTransactionNumber: student.transactionNumber,
+      scheduleDate: schedule.date,
+    });
 
     // Format date and time for email
     const appointmentDate = new Date(schedule.date);
@@ -95,7 +131,7 @@ exports.createBooking = async (req, res) => {
         savedBooking = await newBooking.save({ session });
 
         // Create the status record ONLY after booking is successfully created
-        await AppointmentStatus.create(
+        const statusRecord = await AppointmentStatus.create(
           [
             {
               transactionNumber: student.transactionNumber,
@@ -108,6 +144,15 @@ exports.createBooking = async (req, res) => {
           ],
           { session }
         );
+
+        console.log("Status record created successfully:", {
+          transactionNumber: student.transactionNumber,
+          timeSlot: timeSlot,
+          status: "PENDING",
+          appointmentDate: schedule.date,
+          emailAddress: student.emailAddress,
+          recordId: statusRecord[0]._id,
+        });
 
         // Create notification for new appointment
         try {

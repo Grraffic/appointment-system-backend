@@ -62,6 +62,14 @@ exports.updateStatus = async (req, res) => {
       if (timeSlot) appointmentStatus.timeSlot = timeSlot;
     }
 
+    console.log("Status update - Final appointment data:", {
+      transactionNumber: appointmentStatus.transactionNumber,
+      status: appointmentStatus.status,
+      timeSlot: appointmentStatus.timeSlot,
+      appointmentDate: appointmentStatus.appointmentDate,
+      emailAddress: appointmentStatus.emailAddress,
+    });
+
     await appointmentStatus.save();
 
     // Create internal notification

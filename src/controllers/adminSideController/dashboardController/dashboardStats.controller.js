@@ -27,10 +27,22 @@ const getDashboardStats = async (req, res) => {
       COMPLETED: 0,
       REJECTED: 0,
       total: 0,
+      morning: {
+        APPROVED: 0,
+        PENDING: 0,
+        COMPLETED: 0,
+        REJECTED: 0,
+      },
+      afternoon: {
+        APPROVED: 0,
+        PENDING: 0,
+        COMPLETED: 0,
+        REJECTED: 0,
+      },
       timeSlots: {}, // Dynamic object to store time slot breakdowns
     };
 
-    // SIMPLIFIED COUNTING - Same logic for all statuses
+    // ENHANCED COUNTING - With AM/PM detection
     statuses.forEach((status) => {
       const statusType = status.status || "PENDING";
       const timeSlot = status.timeSlot || "";
@@ -43,6 +55,37 @@ const getDashboardStats = async (req, res) => {
       if (stats.hasOwnProperty(statusType)) {
         stats[statusType]++;
         stats.total++;
+
+        // Determine if it's morning or afternoon using your improved logic
+        const isAM =
+          timeSlot.toUpperCase().includes("AM") ||
+          timeSlot.toUpperCase().includes("MORNING");
+        const isPM =
+          timeSlot.toUpperCase().includes("PM") ||
+          timeSlot.toUpperCase().includes("AFTERNOON");
+
+        console.log(`  -> AM check: ${isAM}, PM check: ${isPM}`);
+
+        if (isAM) {
+          stats.morning[statusType]++;
+          console.log(
+            `  -> ✅ Added to MORNING ${statusType} (count now: ${stats.morning[statusType]})`
+          );
+        } else if (isPM) {
+          stats.afternoon[statusType]++;
+          console.log(
+            `  -> ✅ Added to AFTERNOON ${statusType} (count now: ${stats.afternoon[statusType]})`
+          );
+        } else {
+          console.log(`  -> ❌ TimeSlot "${timeSlot}" not recognized as AM/PM`);
+          console.log(
+            `  -> Debug: toUpperCase="${timeSlot.toUpperCase()}", includes AM=${timeSlot
+              .toUpperCase()
+              .includes("AM")}, includes PM=${timeSlot
+              .toUpperCase()
+              .includes("PM")}`
+          );
+        }
 
         // Group by actual time slot that user selected
         const actualTimeSlot = timeSlot || "No time specified";
@@ -68,8 +111,30 @@ const getDashboardStats = async (req, res) => {
       }
     });
 
-    console.log("Final stats:", stats);
-    res.status(200).json(stats);
+    // Ensure morning and afternoon objects are always included in response
+    const finalStats = {
+      APPROVED: stats.APPROVED || 0,
+      PENDING: stats.PENDING || 0,
+      COMPLETED: stats.COMPLETED || 0,
+      REJECTED: stats.REJECTED || 0,
+      total: stats.total || 0,
+      morning: {
+        APPROVED: stats.morning?.APPROVED || 0,
+        PENDING: stats.morning?.PENDING || 0,
+        COMPLETED: stats.morning?.COMPLETED || 0,
+        REJECTED: stats.morning?.REJECTED || 0,
+      },
+      afternoon: {
+        APPROVED: stats.afternoon?.APPROVED || 0,
+        PENDING: stats.afternoon?.PENDING || 0,
+        COMPLETED: stats.afternoon?.COMPLETED || 0,
+        REJECTED: stats.afternoon?.REJECTED || 0,
+      },
+      timeSlots: stats.timeSlots || {},
+    };
+
+    console.log("Final stats with morning/afternoon:", finalStats);
+    res.status(200).json(finalStats);
   } catch (error) {
     console.error("Error getting dashboard stats:", error);
     res.status(500).json({
