@@ -54,11 +54,11 @@ exports.createBooking = async (req, res) => {
     //   });
     // }
 
-    // console.log(
-    //   "Duplicate check temporarily disabled - allowing appointment creation"
-    // );
-    // console.log("Student transaction number:", student.transactionNumber);
-    // console.log("Schedule ID:", scheduleId);
+    console.log(
+      "Duplicate check temporarily disabled - allowing appointment creation"
+    );
+    console.log("Student transaction number:", student.transactionNumber);
+    console.log("Schedule ID:", scheduleId);
 
     // Use the actual time slot from the request (e.g., "8:00 AM - 11:00 AM")
     const timeSlot =
