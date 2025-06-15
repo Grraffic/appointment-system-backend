@@ -207,7 +207,6 @@ const getDocumentRequestsWithDetails = async (req, res) => {
           // Get booking info as fallback
           const bookingInfo = bookingMap[req.student._id.toString()];
 
-<<<<<<< HEAD
           // Use status info first, then fallback to booking info
           let appointmentDate = "Not scheduled";
           let timeSlot = "Not scheduled";
@@ -253,8 +252,6 @@ const getDocumentRequestsWithDetails = async (req, res) => {
             }
           );
 
-=======
->>>>>>> parent of 483557d (Minor changes)
           return {
             transactionNumber: req.student.transactionNumber,
             name: `${req.student.surname || ""}, ${
