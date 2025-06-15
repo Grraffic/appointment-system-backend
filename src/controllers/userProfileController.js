@@ -19,8 +19,16 @@ exports.uploadProfilePicture = async (req, res) => {
     let profilePictureUrl;
     let publicId;
 
+    console.log("📁 File info:", {
+      path: req.file.path,
+      filename: req.file.filename,
+      originalname: req.file.originalname,
+      mimetype: req.file.mimetype,
+    });
+
     // Check if we're using Cloudinary or fallback
     if (req.file.path && req.file.path.includes("cloudinary.com")) {
+      console.log("✅ Using direct Cloudinary upload path");
 
       // Delete old profile picture from Cloudinary if it exists
       if (user.profilePicture && user.cloudinaryPublicId) {
@@ -36,6 +44,36 @@ exports.uploadProfilePicture = async (req, res) => {
 
       profilePictureUrl = req.file.path;
       publicId = req.file.filename;
+
+      // If filename is undefined, extract public_id from the URL
+      if (!publicId && profilePictureUrl) {
+        try {
+          // Cloudinary URL format: https://res.cloudinary.com/cloud_name/image/upload/v1234567890/folder/public_id.ext
+          const urlParts = profilePictureUrl.split("/");
+          // Find the part after 'upload' and version number
+          const uploadIndex = urlParts.findIndex((part) => part === "upload");
+          if (uploadIndex !== -1 && uploadIndex + 2 < urlParts.length) {
+            // Skip 'upload' and version number, get the rest as public_id path
+            const publicIdParts = urlParts.slice(uploadIndex + 2);
+            const fullPath = publicIdParts.join("/");
+            // Remove file extension from the last part
+            publicId = fullPath.replace(/\.[^/.]+$/, "");
+            console.log("🔧 Extracted publicId from URL:", publicId);
+          } else {
+            // Fallback: just use the filename without extension
+            const fileWithExt = urlParts[urlParts.length - 1];
+            publicId = fileWithExt.split(".")[0];
+            console.log("🔧 Fallback publicId extraction:", publicId);
+          }
+        } catch (error) {
+          console.error("Error extracting publicId from URL:", error);
+          // Generate a fallback publicId
+          publicId = `profile-${userId}-${Date.now()}`;
+          console.log("🔧 Generated fallback publicId:", publicId);
+        }
+      }
+
+      console.log("📝 Direct upload values:", { profilePictureUrl, publicId });
     } else {
       // Fallback: Upload to Cloudinary manually
       console.log("⚠️  Using manual Cloudinary upload fallback");
@@ -67,6 +105,10 @@ exports.uploadProfilePicture = async (req, res) => {
 
         profilePictureUrl = uploadResult.secure_url;
         publicId = uploadResult.public_id;
+        console.log("📝 Manual upload values:", {
+          profilePictureUrl,
+          publicId,
+        });
       } catch (cloudinaryError) {
         console.error("❌ Cloudinary upload failed:", cloudinaryError);
         return res.status(500).json({
@@ -76,15 +118,38 @@ exports.uploadProfilePicture = async (req, res) => {
       }
     }
 
+    // Debug logging
+    console.log("📝 Final values before saving:");
+    console.log("profilePictureUrl:", profilePictureUrl);
+    console.log("publicId:", publicId);
+
+    // Final validation - ensure we have both required values
+    if (!profilePictureUrl) {
+      return res.status(500).json({
+        message: "Failed to get profile picture URL",
+        error: "profilePictureUrl is missing",
+      });
+    }
+
+    if (!publicId) {
+      console.warn("⚠️ publicId is missing, generating fallback");
+      publicId = `profile-${userId}-${Date.now()}`;
+    }
+
     // Update user profile picture URL and public ID in database
     user.profilePicture = profilePictureUrl;
     user.cloudinaryPublicId = publicId;
     await user.save();
-    
-    res.status(200).json({
+
+    // Prepare response
+    const response = {
       message: "Profile picture uploaded successfully",
       profilePicture: profilePictureUrl,
-    });
+      cloudinaryPublicId: publicId,
+    };
+
+    console.log("📤 Sending response:", response);
+    res.status(200).json(response);
   } catch (error) {
     console.error("Error uploading profile picture:", error);
     res.status(500).json({
@@ -196,7 +261,6 @@ exports.deleteImageByPublicId = async (req, res) => {
 
     // Delete the image from Cloudinary
     const result = await cloudinary.uploader.destroy(publicId);
-
 
     if (result.result === "ok") {
       res.status(200).json({
