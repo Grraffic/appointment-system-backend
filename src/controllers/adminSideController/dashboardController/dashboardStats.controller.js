@@ -20,25 +20,14 @@ const getDashboardStats = async (req, res) => {
       }))
     );
 
-    // Initialize counters with uppercase status values
+    // Initialize counters with uppercase status values and time slots
     const stats = {
       APPROVED: 0,
       PENDING: 0,
       COMPLETED: 0,
       REJECTED: 0,
       total: 0,
-      morning: {
-        APPROVED: 0,
-        PENDING: 0,
-        COMPLETED: 0,
-        REJECTED: 0,
-      },
-      afternoon: {
-        APPROVED: 0,
-        PENDING: 0,
-        COMPLETED: 0,
-        REJECTED: 0,
-      },
+      timeSlots: {}, // Dynamic object to store time slot breakdowns
     };
 
     // SIMPLIFIED COUNTING - Same logic for all statuses
@@ -55,23 +44,27 @@ const getDashboardStats = async (req, res) => {
         stats[statusType]++;
         stats.total++;
 
-        // Determine if it's morning or afternoon
-        const isAM =
-          timeSlot.toUpperCase().includes("AM") ||
-          timeSlot.toUpperCase().includes("MORNING");
-        const isPM =
-          timeSlot.toUpperCase().includes("PM") ||
-          timeSlot.toUpperCase().includes("AFTERNOON");
+        // Group by actual time slot that user selected
+        const actualTimeSlot = timeSlot || "No time specified";
 
-        if (isAM) {
-          stats.morning[statusType]++;
-          console.log(`  -> Added to MORNING ${statusType}`);
-        } else if (isPM) {
-          stats.afternoon[statusType]++;
-          console.log(`  -> Added to AFTERNOON ${statusType}`);
-        } else {
-          console.log(`  -> TimeSlot "${timeSlot}" not recognized as AM/PM`);
+        // Initialize time slot object if it doesn't exist
+        if (!stats.timeSlots[actualTimeSlot]) {
+          stats.timeSlots[actualTimeSlot] = {
+            APPROVED: 0,
+            PENDING: 0,
+            COMPLETED: 0,
+            REJECTED: 0,
+            total: 0,
+          };
         }
+
+        // Add to the specific time slot
+        stats.timeSlots[actualTimeSlot][statusType]++;
+        stats.timeSlots[actualTimeSlot].total++;
+
+        console.log(
+          `  -> Added to time slot "${actualTimeSlot}" for ${statusType}`
+        );
       }
     });
 
