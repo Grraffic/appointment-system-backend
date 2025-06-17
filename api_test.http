@@ -5,7 +5,7 @@
 # CONTACT FORM
 
 ### Submit a contact form
-POST https://appointment-system-hy6r.onrender.com/api/contact
+POST https://appointment-system-backend-n8dk.onrender.com/api/contact
 Content-Type: application/json
 
 {
@@ -16,13 +16,13 @@ Content-Type: application/json
 }
 
 ### Get all contact form submissions
-GET https://appointment-system-hy6r.onrender.com/api/contact
+GET https://appointment-system-backend-n8dk.onrender.com/api/contact
 
 ### Get a contact form submission by ID
-GET https://appointment-system-hy6r.onrender.com/api/contact/CONTACT_ID_HERE
+GET https://appointment-system-backend-n8dk.onrender.com/api/contact/CONTACT_ID_HERE
 
 ### Update a contact form submission
-PUT https://appointment-system-hy6r.onrender.com/api/contact/CONTACT_ID_HERE
+PUT https://appointment-system-backend-n8dk.onrender.com/api/contact/CONTACT_ID_HERE
 Content-Type: application/json
 
 {
@@ -32,34 +32,34 @@ Content-Type: application/json
 }
 
 ### Delete a contact form submission
-DELETE https://appointment-system-hy6r.onrender.com/api/contact/CONTACT_ID_HERE
+DELETE https://appointment-system-backend-n8dk.onrender.com/api/contact/CONTACT_ID_HERE
 
 
 # STUDENT ROUTES
 
-### Create a new student
-POST https://appointment-system-hy6r.onrender.com/api/students
+### Step 1: Create a new student
+POST https://appointment-system-backend-n8dk.onrender.com/api/students
 Content-Type: application/json
 
 {
-  "surname": "Marco",
-  "firstName": "Justine Jynne",
-  "middleName": "A.",
-  "lastSchoolYearAttended": "2020-2023",
-  "courseOrStrand": "Grade 7",
-  "presentAddress": "sampaloc",
-  "contactNumber": "09123456789",
-  "emailAddress": "justine@gmail.com"
+  "surname": "Santos",
+  "firstName": "Maria",
+  "middleName": "Cruz",
+  "lastSchoolYearAttended": "2024-2025",
+  "courseOrStrand": "BSIT",
+  "presentAddress": "123 Main Street, Manila",
+  "contactNumber": "09876543210",
+  "emailAddress": "maria.santos@email.com"
 }
 
 ### Get all students
-GET https://appointment-system-hy6r.onrender.com/api/students
+GET https://appointment-system-backend-n8dk.onrender.com/api/students
 
 ### Get a student by ID
-GET https://appointment-system-hy6r.onrender.com/api/students/6827ef3ee4e6fb2501433626
+GET https://appointment-system-backend-n8dk.onrender.com/api/students/6827ef3ee4e6fb2501433626
 
 ### Update a student
-PUT https://appointment-system-hy6r.onrender.com/api/students/STUDENT_ID_HERE
+PUT https://appointment-system-backend-n8dk.onrender.com/api/students/STUDENT_ID_HERE
 Content-Type: application/json
 
 {
@@ -68,30 +68,30 @@ Content-Type: application/json
 }
 
 ### Delete a student
-DELETE https://appointment-system-hy6r.onrender.com/api/students/6827efc9e4e6fb250143362b
+DELETE https://appointment-system-backend-n8dk.onrender.com/api/students/6827efc9e4e6fb250143362b
 
 
 # DOCUMENT REQUESTS
 
-### Create a document request
-POST https://appointment-system-hy6r.onrender.com/api/document-requests/docs
+### Step 2: Create a document request (Replace STUDENT_ID with the ID received from Step 1)
+POST https://appointment-system-backend-n8dk.onrender.com/api/document-requests/docs
 Content-Type: application/json
 
 {
-  "studentId": "6827ef3ee4e6fb2501433626",
-  "selectedDocuments": "Certificate of Enrollment",
-  "purpose": "For job application",
-  "dateOfRequest": "05-05-2025"
+  "studentId": "685164c38af580e2e94bf855",
+  "selectedDocuments": ["Certificate of Enrollment", "Transcript of Records"],
+  "purpose": "For university transfer application",
+  "dateOfRequest": "2025-06-17"
 }
 
 ### Get all document requests
-GET https://appointment-system-hy6r.onrender.com/api/document-requests/docs
+GET https://appointment-system-backend-n8dk.onrender.com/api/document-requests/docs
 
 ### Get a document request by ID
-GET https://appointment-system-hy6r.onrender.com/api/document-requests/docs/682c9a9279bf15ea58d0a13e
+GET https://appointment-system-backend-n8dk.onrender.com/api/document-requests/docs/682c9a9279bf15ea58d0a13e
 
 ### Update a document request
-PUT https://appointment-system-hy6r.onrender.com/api/document-requests/docs/6827ef3ee4e6fb2501433626
+PUT https://appointment-system-backend-n8dk.onrender.com/api/document-requests/docs/6827ef3ee4e6fb2501433626
 Content-Type: application/json
 
 {
@@ -100,28 +100,28 @@ Content-Type: application/json
 }
 
 ### Delete a document request
-DELETE https://appointment-system-hy6r.onrender.com/api/document-requests/DOC_REQUEST_ID_HERE
+DELETE https://appointment-system-backend-n8dk.onrender.com/api/document-requests/DOC_REQUEST_ID_HERE
 
 ### Get a document request with student details
-GET https://appointment-system-hy6r.onrender.com/api/document-requests/docs/with-student/682c9a9279bf15ea58d0a13e
+GET https://appointment-system-backend-n8dk.onrender.com/api/document-requests/docs/with-student/682c9a9279bf15ea58d0a13e
 
 
 # ATTACHMENTS
 
 ### Upload attachments
-POST https://appointment-system-hy6r.onrender.com/api/attachment/upload
+POST https://appointment-system-backend-n8dk.onrender.com/api/attachment/upload
 Content-Type: multipart/form-data
 
 # NOTE: Use a REST client that supports file upload, like Postman or VS Code REST Client extension.
 
 ### Get all attachments
-GET https://appointment-system-hy6r.onrender.com/api/attachment
+GET https://appointment-system-backend-n8dk.onrender.com/api/attachment
 
 ### Get attachment by ID
-GET https://appointment-system-hy6r.onrender.com/api/attachment/ATTACHMENT_ID_HERE
+GET https://appointment-system-backend-n8dk.onrender.com/api/attachment/ATTACHMENT_ID_HERE
 
 ### Delete attachment by ID
-DELETE https://appointment-system-hy6r.onrender.com/api/attachment/ATTACHMENT_ID_HERE
+DELETE https://appointment-system-backend-n8dk.onrender.com/api/attachment/ATTACHMENT_ID_HERE
 
 
 # =====================
@@ -129,19 +129,19 @@ DELETE https://appointment-system-hy6r.onrender.com/api/attachment/ATTACHMENT_ID
 # =====================
 
 ### Create a new booking (User books a time slot)
-POST https://appointment-system-hy6r.onrender.com/api/bookings
+POST https://appointment-system-backend-n8dk.onrender.com/api/bookings
 Content-Type: application/json
 
 {
-  "userId": "6817b28c2b5ee75e32caa0b3",
+  "userId": "685165018af580e2e94bf9f7",
   "scheduleId": "6826ced4fd101145f28c921d"
 }
 
 ### Get all bookings (admin/staff view)
-GET https://appointment-system-hy6r.onrender.com/api/bookings
+GET https://appointment-system-backend-n8dk.onrender.com/api/bookings
 
 ### Get bookings by user ID (user's own appointments)
-GET https://appointment-system-hy6r.onrender.com/api/bookings/user/6817b28c2b5ee75e32caa0b3
+GET https://appointment-system-backend-n8dk.onrender.com/api/bookings/user/6817b28c2b5ee75e32caa0b3
 
 ### =====================
 ### ADMIN SIDE
@@ -150,7 +150,7 @@ GET https://appointment-system-hy6r.onrender.com/api/bookings/user/6817b28c2b5ee
 # SIGNUP (Admin Users)
 
 ### Create new admin account
-POST https://appointment-system-hy6r.onrender.com/api/signup
+POST https://appointment-system-backend-n8dk.onrender.com/api/signup
 Content-Type: application/json
 
 {
@@ -161,7 +161,7 @@ Content-Type: application/json
 }
 
 ### Sign in to get token
-POST https://appointment-system-hy6r.onrender.com/api/signin
+POST https://appointment-system-backend-n8dk.onrender.com/api/signin
 Content-Type: application/json
 
 {
@@ -170,13 +170,13 @@ Content-Type: application/json
 }
 
 ### Get all users (Protected Route - Replace YOUR_TOKEN)
-GET https://appointment-system-hy6r.onrender.com/api/signup
+GET https://appointment-system-backend-n8dk.onrender.com/api/signup
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4M2E5YzE5YmFmOTkxNmQxZWIzY2UxYyIsImlhdCI6MTc0ODY3MTUxNywiZXhwIjoxNzQ4NzU3OTE3fQ.CQhKVGJhSMxblBUF5sxdrkLYgGNY6MNA1dwp5y-2z-4
 ### Get user by ID (Protected Route - Replace USER_ID and YOUR_TOKEN)
-GET https://appointment-system-hy6r.onrender.com/api/signup/682b2adb9b120551dd477fbf
+GET https://appointment-system-backend-n8dk.onrender.com/api/signup/682b2adb9b120551dd477fbf
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MmM4NmE3YjcwNGJjZTcxMmQyNWFjNSIsImlhdCI6MTc0Nzc0ODUxOSwiZXhwIjoxNzQ3ODM0OTE5fQ.u_a185sRi2EUQ2BlAviYAygVD461bGB3JqwJn3Qsbyw
 ### Update user (Protected Route - Replace USER_ID and YOUR_TOKEN)
-PUT https://appointment-system-hy6r.onrender.com/api/signup/682b2adb9b120551dd477fbf
+PUT https://appointment-system-backend-n8dk.onrender.com/api/signup/682b2adb9b120551dd477fbf
 Content-Type: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MmM4NmE3YjcwNGJjZTcxMmQyNWFjNSIsImlhdCI6MTc0Nzc0ODUxOSwiZXhwIjoxNzQ3ODM0OTE5fQ.u_a185sRi2EUQ2BlAviYAygVD461bGB3JqwJn3Qsbyw
 {
@@ -185,11 +185,11 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MmM4NmE3Y
 }
 
 ### Delete user (Protected Route - Replace USER_ID and YOUR_TOKEN)
-DELETE https://appointment-system-hy6r.onrender.com/api/signup/USER_ID
+DELETE https://appointment-system-backend-n8dk.onrender.com/api/signup/USER_ID
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MmM4NmE3YjcwNGJjZTcxMmQyNWFjNSIsImlhdCI6MTc0Nzc0ODUxOSwiZXhwIjoxNzQ3ODM0OTE5fQ.u_a185sRi2EUQ2BlAviYAygVD461bGB3JqwJn3Qsbyw
 
 ### Sign in
-POST https://appointment-system-hy6r.onrender.com/api/signin
+POST https://appointment-system-backend-n8dk.onrender.com/api/signin
 Content-Type: application/json
 
 {
@@ -202,36 +202,36 @@ Content-Type: application/json
 # =====================
 
 ### Create a new schedule
-POST https://appointment-system-hy6r.onrender.com/api/schedules
+POST https://appointment-system-backend-n8dk.onrender.com/api/schedules
 Content-Type: application/json
 
 {
   "slots": 40,
-  "date": "2024-12-27",
+  "date": "2025-12-27",
   "startTime": "8:00 AM",
   "endTime": "4:00 PM"
 }
 
 ### Get all schedules
-GET https://appointment-system-hy6r.onrender.com/api/schedules
+GET https://appointment-system-backend-n8dk.onrender.com/api/schedules
 
 # =====================
 # AUTH ROUTES
 # =====================
 
 ### Verify Email
-GET https://appointment-system-hy6r.onrender.com/api/verify/YOUR_VERIFICATION_TOKEN
+GET https://appointment-system-backend-n8dk.onrender.com/api/verify/YOUR_VERIFICATION_TOKEN
 
 ### Protected Route Example (Requires Auth Token)
-GET https://appointment-system-hy6r.onrender.com/api/signup
+GET https://appointment-system-backend-n8dk.onrender.com/api/signup
 Authorization: Bearer YOUR_JWT_TOKEN
 
 ### Protected User Profile (Requires Auth Token)
-GET https://appointment-system-hy6r.onrender.com/api/signup/682b23cbb89abe9ca498659f
+GET https://appointment-system-backend-n8dk.onrender.com/api/signup/682b23cbb89abe9ca498659f
 Authorization: Bearer YOUR_JWT_TOKEN
 
 ### Protected User Update (Requires Auth Token)
-PUT https://appointment-system-hy6r.onrender.com/api/signup/682b23cbb89abe9ca498659f
+PUT https://appointment-system-backend-n8dk.onrender.com/api/signup/682b23cbb89abe9ca498659f
 Authorization: Bearer YOUR_JWT_TOKEN
 Content-Type: application/json
 
@@ -246,20 +246,39 @@ Content-Type: application/json
 
 ### Google OAuth Login
 # This will redirect to Google's login page
-GET https://appointment-system-hy6r.onrender.com/api/auth/google
+GET https://appointment-system-backend-n8dk.onrender.com/api/auth/google
 
 ### Google OAuth Callback
 # This endpoint will be called by Google after successful authentication
-GET https://appointment-system-hy6r.onrender.com/api/auth/google/callback
+GET https://appointment-system-backend-n8dk.onrender.com/api/auth/google/callback
 
 ### Verify Google Authentication Token
-GET https://appointment-system-hy6r.onrender.com/api/auth/google/verify
+GET https://appointment-system-backend-n8dk.onrender.com/api/auth/google/verify
 Authorization: Bearer your_jwt_token_here
 
 ### Request OTP
-POST https://appointment-system-hy6r.onrender.com/api/forgot-password/request-otp
+POST https://appointment-system-backend-n8dk.onrender.com/api/forgot-password/request-otp
 Content-Type: application/json
 
 {
   "email": "ramosraf278@gmail.com"
 }
+
+### Test Document Request Appointment
+POST https://appointment-system-backend-n8dk.onrender.com/api/document-requests/docs
+Content-Type: application/json
+
+{
+  "studentId": "6827ef3ee4e6fb2501433626",
+  "selectedDocuments": ["Certificate of Enrollment"],
+  "purpose": "For enrollment verification",
+  "dateOfRequest": "2025-06-17"
+}
+
+# APPOINTMENT VERIFICATION
+
+### Step 3: Verify document request is in the system
+GET https://appointment-system-backend-n8dk.onrender.com/api/document-requests/docs-with-details
+
+### Step 4: Get specific document request (Replace REQUEST_ID with the ID received from Step 2)
+GET https://appointment-system-backend-n8dk.onrender.com/api/document-requests/docs/REQUEST_ID

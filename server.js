@@ -20,6 +20,8 @@ app.use(
       "http://localhost:4173",
       "https://appointment-system-hy6r.onrender.com",
       "https://appointment-system-fe.vercel.app",
+      "https://appointment-system-backend-n8dk.onrender.com",
+      // "https://appointment-system-backend.onrender.com"
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Accept", "Authorization"],
@@ -30,7 +32,16 @@ app.use(
 // Increase payload size limit
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
+app.use(express.json());
 
+// Debug endpoint
+app.get("/api/debug", (req, res) => {
+  res.json({
+    message: "Server is running",
+    timestamp: new Date().toISOString(),
+    origin: req.get("origin") || "No origin header",
+  });
+});
 
 // Logger Middleware
 app.use((req, res, next) => {

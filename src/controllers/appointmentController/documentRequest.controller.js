@@ -10,9 +10,16 @@ const {
 // Create Document Request
 const createDocumentRequest = async (req, res) => {
   try {
+    console.log("Received document request payload:", req.body);
     const { studentId, selectedDocuments, purpose, dateOfRequest } = req.body;
 
     if (!studentId || !selectedDocuments || !purpose || !dateOfRequest) {
+      console.log("Missing required fields:", {
+        hasStudentId: !!studentId,
+        hasSelectedDocs: !!selectedDocuments,
+        hasPurpose: !!purpose,
+        hasDate: !!dateOfRequest,
+      });
       return res.status(400).json({ message: "All fields are required" });
     }
 
@@ -23,10 +30,16 @@ const createDocumentRequest = async (req, res) => {
       purpose,
       dateOfRequest,
     });
+    console.log("Created new document request object:", newRequest);
     const savedRequest = await newRequest.save();
+    console.log("Saved document request:", savedRequest);
 
     // Get student details for notification
     const student = await Student.findById(studentId);
+    console.log(
+      "Found student:",
+      student ? student.transactionNumber : "Not found"
+    );
 
     if (student) {
       // Create a basic status record for the new request using student's transactionNumber
