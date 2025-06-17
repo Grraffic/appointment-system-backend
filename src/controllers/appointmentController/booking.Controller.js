@@ -60,9 +60,10 @@ exports.createBooking = async (req, res) => {
     // console.log("Student transaction number:", student.transactionNumber);
     // console.log("Schedule ID:", scheduleId);
 
-    // Use the actual time slot from the request (e.g., "8:00 AM - 11:00 AM")
-    const timeSlot =
-      req.body.timeSlot || `${schedule.startTime} - ${schedule.endTime}`;
+    // Determine if it's morning or afternoon based on the schedule's startTime
+    const timeSlot = schedule.startTime.toLowerCase().includes("am")
+      ? "MORNING"
+      : "AFTERNOON";
 
     // Format date and time for email
     const appointmentDate = new Date(schedule.date);
