@@ -198,9 +198,76 @@ const getDocumentRequestsWithDetails = async (req, res) => {
                 file.student.toString() === req.student._id.toString()
             );
 
-          const filenames = studentAttachments
-            .filter((file) => file && file.filename)
-            .map((file) => file.filename);
+          // Get attachment URLs (full Cloudinary URLs) instead of just filenames
+          const attachmentUrls = studentAttachments
+            .filter((file) => file && file.path)
+            .map((file) => {
+              console.log(
+                "🔍 DEBUG: Processing attachment file for admin display:",
+                {
+                  filename: file.filename,
+                  path: file.path,
+                  mimetype: file.mimetype,
+                  pathType: typeof file.path,
+                  pathLength: file.path ? file.path.length : 0,
+                  isCloudinaryUrl: file.path
+                    ? file.path.startsWith("https://res.cloudinary.com")
+                    : false,
+                }
+              );
+
+              // With the fixed upload controller, path should now always contain full Cloudinary URLs
+              if (
+                file.path &&
+                file.path.startsWith("https://res.cloudinary.com")
+              ) {
+                console.log(
+                  "✅ Found full Cloudinary URL in database:",
+                  file.path
+                );
+                return file.path;
+              } else {
+                // Fallback: construct URL from public_id (for existing records)
+                console.log(
+                  "⚠️ Path is not a full URL, constructing from public_id:",
+                  file.path
+                );
+
+                const publicId = file.path.replace(/\.[^/.]+$/, ""); // Remove file extension
+                const timestampMatch = publicId.match(/-(\d+)$/);
+
+                if (timestampMatch) {
+                  const fullTimestamp = timestampMatch[1];
+                  const versionTimestamp = fullTimestamp.substring(0, 10);
+                  const fullUrl = `https://res.cloudinary.com/dp9hjzio8/image/upload/v${versionTimestamp}/appointment-system/attachments/${publicId}`;
+
+                  console.log(
+                    "🔍 DEBUG: Constructed URL for existing record:",
+                    {
+                      originalPath: file.path,
+                      constructedUrl: fullUrl,
+                    }
+                  );
+
+                  return fullUrl;
+                } else {
+                  console.warn("⚠️ Could not process path:", file.path);
+                  return file.filename; // Fallback to filename
+                }
+              }
+            });
+
+          console.log(
+            "🔍 DEBUG: Final attachment URLs being sent to frontend:",
+            attachmentUrls
+          );
+
+          console.log(
+            "🔍 DEBUG: What will be sent in attachment field:",
+            attachmentUrls.length > 0
+              ? attachmentUrls.join(", ")
+              : "No attachments"
+          );
 
           // Get appointment status info for this student
           const statusInfo = statusMap[req.student.transactionNumber];
@@ -262,7 +329,9 @@ const getDocumentRequestsWithDetails = async (req, res) => {
             contact: req.student.contactNumber || "N/A",
             email: req.student.emailAddress || "N/A",
             attachment:
-              filenames.length > 0 ? filenames.join(", ") : "No attachments",
+              attachmentUrls.length > 0
+                ? attachmentUrls.join(", ")
+                : "No attachments",
             request: Array.isArray(req.selectedDocuments)
               ? req.selectedDocuments.join(", ")
               : "No documents selected",

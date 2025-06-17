@@ -59,13 +59,26 @@ const attachmentStorage = new CloudinaryStorage({
   params: {
     folder: "appointment-system/attachments",
     allowed_formats: ["jpg", "jpeg", "png", "pdf", "doc", "docx"],
-    resource_type: "auto", // Automatically detect file type
+    resource_type: "auto",
     public_id: (req, file) => {
-      const studentId = req.body.studentId;
+      // Get student ID from request body (allow undefined)
+      const studentId = req.body.studentId || "undefined";
+
       // Remove file extension and special characters from original filename
-      const originalName = file.originalname.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9]/g, '_');
-      return `${originalName}-${studentId}-${Date.now()}`;
+      const originalName = file.originalname
+        .replace(/\.[^/.]+$/, "")
+        .replace(/[^a-zA-Z0-9]/g, "_");
+      const timestamp = Date.now();
+
+      console.log(
+        "Creating Cloudinary public_id:",
+        `${originalName}-${studentId}-${timestamp}`
+      );
+
+      return `${originalName}-${studentId}-${timestamp}`;
     },
+    use_filename: false,
+    unique_filename: true,
   },
 });
 
