@@ -22,7 +22,7 @@ const eventSchema = new mongoose.Schema({
     // Optional: Add color or other event-specific properties
     color: {
         type: String,
-        default: 'bg-blue-500', // Default Tailwind color class
+        default: 'bg-[#F09E18]', // Default event color
     }
     // Optional: userId if events are user-specific
     // userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
