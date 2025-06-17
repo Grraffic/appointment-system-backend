@@ -10,14 +10,17 @@ const {
 } = require("../../controllers/appointmentController/attachment.Controller");
 
 const fileFilter = (req, file, cb) => {
-  // Accept images and PDFs
+  // Accept images, PDFs, DOC, and DOCX files
   if (
     file.mimetype.startsWith("image/") ||
-    file.mimetype === "application/pdf"
+    file.mimetype === "application/pdf" ||
+    file.mimetype === "application/msword" || // DOC
+    file.mimetype ===
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document" // DOCX
   ) {
     cb(null, true);
   } else {
-    cb(new Error("Only images and PDF files are allowed!"), false);
+    cb(new Error("Only images, PDF, DOC, and DOCX files are allowed!"), false);
   }
 };
 
